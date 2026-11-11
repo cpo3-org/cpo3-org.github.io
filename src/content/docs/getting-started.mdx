@@ -1,0 +1,217 @@
+---
+title: Getting started
+description: Install cpo3 and solve your first quadratic program in Python or Rust.
+tableOfContents:
+  maxHeadingLevel: 2
+---
+
+import { Tabs, TabItem } from '@astrojs/starlight/components';
+
+This guide builds cpo3 from source and solves a small quadratic program.
+Choose Python or Rust below; both examples solve the same problem.
+
+## The example problem
+
+We minimize a quadratic objective subject to two upper bounds:
+
+```text
+minimize     0.5 * (x₁² + x₂²) - x₁ - 2x₂
+subject to   x₁ ≤ 3
+             x₂ ≤ 4
+```
+
+The solution is `x = [1, 2]`, with objective value `-2.5`. This gives us a known
+answer to check against after the first solve.
+
+## Install and solve
+
+cpo3 is not yet published on PyPI or crates.io. Install it from source using
+the instructions below.
+
+<Tabs>
+<TabItem label="Python">
+
+### Install
+
+You need:
+
+- [Rust 1.91 or later](https://www.rust-lang.org/tools/install), to build the solver.
+- Python 3.10 or later.
+- [uv](https://docs.astral.sh/uv/getting-started/installation/), to manage the Python environment.
+- Git, to clone the source.
+
+Clone the solver repository and install the package and its dependencies:
+
+```sh
+git clone https://github.com/cpo3-org/cpo3.git
+cd cpo3
+uv sync
+```
+
+### Solve
+
+Save this as `example.py` in the solver checkout:
+
+```python title="example.py"
+import cpo3
+import numpy as np
+from scipy import sparse
+
+problem = cpo3.Problem(
+    P=sparse.eye(2, format="csc"),
+    c=np.array([-1.0, -2.0]),
+    A=sparse.eye(2, format="csc"),
+    b=np.array([3.0, 4.0]),
+    cones=[cpo3.NonnegativeCone(2)],
+)
+
+solution = cpo3.solve(problem)
+print(solution.status)
+
+if solution.status == cpo3.SolverStatus.SOLVED:
+    print(solution.x)
+    print(solution.info.pobj)
+```
+
+Run it using the environment created by `uv sync`:
+
+```sh
+uv run python example.py
+```
+
+The result should be approximately:
+
+```text
+SolverStatus.SOLVED
+[1. 2.]
+-2.5
+```
+
+The solver returns floating-point approximations, so the last few digits may
+differ. Use `uv run python` for your other scripts in this checkout as well.
+
+### Set options
+
+Pass a `Settings` object to change the defaults. For example, print progress
+and set a time limit of 30 seconds:
+
+```python
+settings = cpo3.Settings(verbose=True, time_limit=30.0)
+solution = cpo3.solve(problem, settings=settings)
+```
+
+</TabItem>
+<TabItem label="Rust">
+
+### Install
+
+You need [Rust 1.91 or later](https://www.rust-lang.org/tools/install) and Git.
+Create a Rust application:
+
+```sh
+cargo new cpo3-example
+cd cpo3-example
+```
+
+Add cpo3 under the existing `[dependencies]` heading in `Cargo.toml`:
+
+```toml title="Cargo.toml"
+[dependencies]
+cpo3 = { git = "https://github.com/cpo3-org/cpo3.git" }
+```
+
+### Solve
+
+Replace `src/main.rs` with:
+
+```rust title="src/main.rs"
+use cpo3::{Cone, CscMatrix, Problem, Settings, SolverStatus, solve};
+
+fn main() -> Result<(), Box<dyn std::error::Error>> {
+    let problem = Problem::new(
+        Some(CscMatrix::identity(2)?),
+        vec![-1.0, -2.0],
+        CscMatrix::identity(2)?,
+        vec![3.0, 4.0],
+        vec![Cone::Nonnegative(2)],
+    )?;
+
+    let solution = solve(&problem, &Settings::default())?;
+    println!("{:?}", solution.status());
+
+    if solution.status() == SolverStatus::Solved {
+        println!("{:?}", solution.x());
+        println!("{}", solution.info().pobj);
+    }
+    Ok(())
+}
+```
+
+Build and run in release mode for numerical workloads:
+
+```sh
+cargo run --release
+```
+
+After compilation, the result should be approximately:
+
+```text
+Solved
+[1.0, 2.0]
+-2.5
+```
+
+The solver returns floating-point approximations, so the last few digits may
+differ.
+
+### Set options
+
+Use struct update syntax to change selected defaults. Replace the call to
+`solve` above with:
+
+```rust
+let settings = Settings {
+    verbose: true,
+    time_limit: Some(std::time::Duration::from_secs(30)),
+    ..Settings::default()
+};
+let solution = solve(&problem, &settings)?;
+```
+
+</TabItem>
+</Tabs>
+
+## How the data describes the problem
+
+cpo3 represents the objective as `0.5 * xᵀ P x + cᵀ x` and the constraints as
+`A x + s = b`, where `s` is a slack vector belonging to the specified cones.
+For this example:
+
+| Input | Value | Meaning |
+| --- | --- | --- |
+| `P` | Identity matrix | The quadratic term is `0.5 * (x₁² + x₂²)`. |
+| `c` | `[-1, -2]` | The linear term is `-x₁ - 2x₂`. |
+| `A` | Identity matrix | One constraint row for each variable. |
+| `b` | `[3, 4]` | The two upper bounds. |
+| `cones` | One nonnegative block of dimension 2 | The slacks must be nonnegative, so `A x ≤ b`. |
+
+Cone blocks describe consecutive rows of `A` and `b`; their dimensions must sum
+to the number of constraints. A zero-cone block enforces equality on its rows.
+Variables have no implicit nonnegativity restriction: express lower bounds as
+additional inequality rows.
+
+For a linear program, set `P=None` in Python or pass `None` for the first
+argument to `Problem::new` in Rust.
+
+## Check the result
+
+Check for `SOLVED` in Python or `Solved` in Rust before interpreting the vectors
+as an optimal solution. The solver may instead return an infeasibility
+certificate or stop at an iteration or time limit.
+
+For a solved problem, `x` contains the primal variables, `y` the dual
+multipliers, and `s` the constraint slacks. The `info` object includes the
+objective, residuals, elapsed time, and iteration count.
+
+The [solver README](https://github.com/cpo3-org/cpo3#readme)
+summarizes the termination statuses.

@@ -1,10 +1,12 @@
+@import 'katex/dist/katex.min.css';
+
 /* Logo palette, with tonal variants for surfaces and readable text. */
 :root {
   --cpo3-paprika: #ec4e20;
   --cpo3-parchment: #f1f0ea;
   --cpo3-ink: #222426;
   --cpo3-slate: #77878b;
-  --cpo3-radius: 0.5rem;
+  --cpo3-radius: 0.2rem;
 
   --sl-sidebar-width: 15rem;
   --sl-content-width: 48rem;
@@ -46,11 +48,6 @@
 
 :root[data-theme='dark'] .sl-markdown-content a:not(:where(.not-content *)):is(:hover, :focus-visible) {
   color: #ff9c7d;
-}
-
-:root .hero .primary:is(:hover, :focus-visible) {
-  background: #f96135;
-  border-color: #f96135;
 }
 
 :root[data-theme='light'],
@@ -119,53 +116,27 @@ starlight-tabs .tab > [role='tab'][aria-selected='true'] {
   color: var(--sl-color-accent-high);
 }
 
-/* A compact, text-led homepage that shares the documentation's reading column. */
-[data-has-hero] .hero {
-  grid-template-columns: 1fr;
-  padding-block: 1.5rem 2.5rem;
+/* Keep the overview close to the typography of the manual. */
+.home-summary {
+  font-size: 1.25rem;
+  color: var(--sl-color-white);
 }
 
-[data-has-hero] .hero .stack {
-  text-align: start;
+.home-links {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem 1.5rem;
 }
 
-[data-has-hero] .hero .copy {
-  align-items: flex-start;
+.sl-markdown-content .katex-display {
+  overflow-x: auto;
+  overflow-y: hidden;
+  margin-block: 1.5rem;
+  padding-block: 0.25rem;
 }
 
-[data-has-hero] .hero h1 {
-  font-size: clamp(2rem, 1.5rem + 2vw, 3rem);
-  letter-spacing: -0.025em;
-}
-
-[data-has-hero] .hero .tagline {
-  max-width: 42rem;
-  font-size: 1.125rem;
-}
-
-[data-has-hero] .hero .actions {
-  justify-content: flex-start;
-  gap: 0.75rem 1.25rem;
-}
-
-[data-has-hero] .hero .sl-link-button {
-  border-radius: var(--cpo3-radius);
-  padding-block: 0.75rem;
-  font-weight: 600;
-}
-
-[data-has-hero] .hero .primary {
-  background: var(--cpo3-paprika);
-  border-color: var(--cpo3-paprika);
-  /* Slightly deeper text maintains contrast on the paprika button. */
-  color: #181a1c;
-}
-
-[data-has-hero] .hero .secondary {
-  border-color: var(--cpo3-code-border);
-}
-
-[data-has-hero] .hero .sl-link-button:hover {
-  text-decoration: underline;
-  text-underline-offset: 0.2em;
+/* Markdown block spacing must not affect mathematical expressions. */
+.sl-markdown-content math,
+.sl-markdown-content math * {
+  margin: 0;
 }

@@ -1,7 +1,16 @@
 import { defineConfig } from 'astro/config';
 import starlight from '@astrojs/starlight';
+import remarkMath from 'remark-math';
+import rehypeKatex from 'rehype-katex';
+import { unified } from '@astrojs/markdown-remark';
 
 export default defineConfig({
+  markdown: {
+    processor: unified({
+      remarkPlugins: [remarkMath],
+      rehypePlugins: [rehypeKatex],
+    }),
+  },
   integrations: [
     starlight({
       title: 'cpo3',
@@ -9,6 +18,7 @@ export default defineConfig({
       customCss: ['./src/styles/theme.css'],
       expressiveCode: {
         useStarlightUiThemeColors: false,
+        defaultProps: { frame: 'code' },
         styleOverrides: {
           borderRadius: 'var(--cpo3-radius)',
           borderColor: 'var(--cpo3-code-border)',
@@ -18,7 +28,7 @@ export default defineConfig({
             editorBackground: 'var(--cpo3-code-bg)',
             editorTabBarBackground: 'var(--cpo3-code-header)',
             editorTabBarBorderBottomColor: 'var(--cpo3-code-border)',
-            editorActiveTabBackground: 'var(--cpo3-code-bg)',
+            editorActiveTabBackground: 'var(--cpo3-code-header)',
             editorActiveTabForeground: 'var(--sl-color-white)',
             editorActiveTabIndicatorTopColor: 'transparent',
             editorActiveTabIndicatorBottomColor: 'transparent',

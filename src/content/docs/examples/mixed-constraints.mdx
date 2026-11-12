@@ -1,0 +1,175 @@
+---
+title: Mixed constraints
+description: Combine equalities, inequalities, and variable bounds in a quadratic program.
+tableOfContents:
+  maxHeadingLevel: 2
+---
+
+import { Tabs, TabItem } from '@astrojs/starlight/components';
+
+This example combines an equality, a general inequality, and variable bounds.
+It assumes you have [installed cpo3](/installation/); the
+[getting started guide](/getting-started/) introduces the basic interface.
+
+## Problem
+
+Consider the quadratic program
+
+$$
+\begin{aligned}
+\underset{x_1,x_2,x_3}{\operatorname{minimize}}\quad
+& \tfrac12(x_1^2+x_2^2+x_3^2)+\tfrac12x_1-\tfrac12x_2+3x_3 \\
+\text{subject to}\quad
+& x_1+x_2+x_3=1, \\
+& x_1+2x_2\leq1.5, \\
+& x_1,x_2,x_3\geq0, \\
+& x_1\leq0.75.
+\end{aligned}
+$$
+
+Its solution is $x=(0.5,0.5,0)$, with objective value $0.25$.
+The general inequality and the lower bound on $x_3$ are active; the other
+variable bounds have positive slack.
+
+## Encode the constraints
+
+cpo3 uses $Ax+s=b$. A zero-cone row fixes its slack to zero and therefore
+represents an equality. A nonnegative-cone row has $s\geq0$ and represents
+an inequality of the form $Ax\leq b$.
+
+Variables have no implicit bounds. Write a lower bound $x_j\geq\ell$ as
+$-x_j\leq-\ell$, and an upper bound $x_j\leq u$ directly as a row.
+For this problem, choose
+
+$$
+P=I_3,\qquad c=\begin{pmatrix}0.5\\-0.5\\3\end{pmatrix},\qquad
+A=\begin{pmatrix}
+1&1&1\\
+1&2&0\\
+-1&0&0\\
+0&-1&0\\
+0&0&-1\\
+1&0&0
+\end{pmatrix},\qquad
+b=\begin{pmatrix}1\\1.5\\0\\0\\0\\0.75\end{pmatrix}.
+$$
+
+The rows below use **zero-based indices**, matching the code:
+
+| Row | Constraint | Slack | Cone |
+| --- | --- | --- | --- |
+| 0 | $x_1+x_2+x_3=1$ | $0$ | Zero |
+| 1 | $x_1+2x_2\leq1.5$ | $1.5-x_1-2x_2$ | Nonnegative |
+| 2 | $x_1\geq0$ | $x_1$ | Nonnegative |
+| 3 | $x_2\geq0$ | $x_2$ | Nonnegative |
+| 4 | $x_3\geq0$ | $x_3$ | Nonnegative |
+| 5 | $x_1\leq0.75$ | $0.75-x_1$ | Nonnegative |
+
+Use one zero-cone block of dimension 1, followed by one nonnegative-cone block
+of dimension 5. Cone blocks apply to consecutive rows: their order matters,
+and their dimensions sum to the six rows of `A`.
+
+## Solve
+
+<Tabs>
+<TabItem label="Python">
+
+Save this as `mixed_constraints.py` and run `python mixed_constraints.py`:
+
+```python title="mixed_constraints.py"
+import cpo3
+from scipy import sparse
+
+problem = cpo3.Problem(
+    P=sparse.eye(3, format="csc"),
+    c=[0.5, -0.5, 3.0],
+    A=sparse.csc_matrix([
+        [1.0, 1.0, 1.0],
+        [1.0, 2.0, 0.0],
+        [-1.0, 0.0, 0.0],
+        [0.0, -1.0, 0.0],
+        [0.0, 0.0, -1.0],
+        [1.0, 0.0, 0.0],
+    ]),
+    b=[1.0, 1.5, 0.0, 0.0, 0.0, 0.75],
+    cones=[cpo3.ZeroCone(1), cpo3.NonnegativeCone(5)],
+)
+
+solution = cpo3.solve(problem)
+print(solution.status)
+if solution.status == cpo3.SolverStatus.SOLVED:
+    print(solution.x)
+    print(solution.y)
+    print(solution.s)
+    print(solution.info.pobj)
+```
+
+</TabItem>
+<TabItem label="Rust">
+
+In your [Rust application](/installation/#rust), replace `src/main.rs` with
+the following and run `cargo run --release`:
+
+```rust title="src/main.rs"
+use cpo3::{Cone, CscMatrix, Problem, Settings, SolverStatus, solve};
+
+fn main() -> Result<(), Box<dyn std::error::Error>> {
+    let a = CscMatrix::from_triplets(
+        6,
+        3,
+        vec![0, 0, 0, 1, 1, 2, 3, 4, 5],
+        vec![0, 1, 2, 0, 1, 0, 1, 2, 0],
+        vec![1.0, 1.0, 1.0, 1.0, 2.0, -1.0, -1.0, -1.0, 1.0],
+    )?;
+    let problem = Problem::new(
+        Some(CscMatrix::identity(3)?),
+        vec![0.5, -0.5, 3.0],
+        a,
+        vec![1.0, 1.5, 0.0, 0.0, 0.0, 0.75],
+        vec![Cone::Zero(1), Cone::Nonnegative(5)],
+    )?;
+
+    let solution = solve(&problem, &Settings::default())?;
+    println!("{:?}", solution.status());
+    if solution.status() == SolverStatus::Solved {
+        println!("{:?}", solution.x());
+        println!("{:?}", solution.y());
+        println!("{:?}", solution.s());
+        println!("{}", solution.info().pobj);
+    }
+    Ok(())
+}
+```
+
+The triplets specify the row, column, and value of each nonzero entry of `A`.
+
+</TabItem>
+</Tabs>
+
+## Interpret the result
+
+After checking for a solved status, expect approximately
+
+$$
+x=\begin{pmatrix}0.5\\0.5\\0\end{pmatrix},\qquad
+y=\begin{pmatrix}-2\\1\\0\\0\\1\\0\end{pmatrix},\qquad
+s=\begin{pmatrix}0\\0\\0.5\\0.5\\0\\0.25\end{pmatrix}.
+$$
+
+The entries of `y` and `s` follow the row order of `A`. The equality multiplier
+is $-2$; equality multipliers can have either sign. The inequality multipliers
+are nonnegative. The general inequality and the lower bound on $x_3$ each
+have multiplier 1 and zero slack. The remaining bounds have zero multipliers
+and positive slacks.
+
+These values satisfy primal feasibility $Ax+s=b$, stationarity
+$Px+c+A^\mathsf{T}y=0$, and complementarity $s_i y_i=0$. In particular,
+
+$$
+Px+c=\begin{pmatrix}1\\0\\3\end{pmatrix},\qquad
+A^\mathsf{T}y=\begin{pmatrix}-1\\0\\-3\end{pmatrix}.
+$$
+
+Numerical results satisfy these conditions to the solver's tolerances, so
+near-zero entries may have either sign. See [conventions](/reference/) for
+residual definitions and the interpretation of other termination statuses.

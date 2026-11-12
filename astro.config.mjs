@@ -42,8 +42,21 @@ export default defineConfig({
       },
       sidebar: [
         { label: 'Overview', slug: 'index' },
+        { label: 'Installation', slug: 'installation' },
         { label: 'Getting started', slug: 'getting-started' },
-        { label: 'Reference', slug: 'reference' },
+        {
+          label: 'Examples',
+          items: [{ label: 'Mixed constraints', slug: 'examples/mixed-constraints' }],
+        },
+        {
+          label: 'API reference',
+          items: [
+            { label: 'Conventions', slug: 'reference' },
+            { label: 'Python', slug: 'reference/python' },
+            { label: 'Rust', slug: 'reference/rust' },
+          ],
+        },
+        { label: 'Settings', slug: 'settings' },
       ],
     }),
   ],

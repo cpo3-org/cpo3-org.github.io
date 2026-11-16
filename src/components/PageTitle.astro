@@ -2,6 +2,8 @@
 import DefaultPageTitle from '@astrojs/starlight/components/PageTitle.astro';
 import { currentVersion, latestRelease, versions, versionDestination } from '../../docs.config.mjs';
 const stable = versionDestination(versions[0], Astro.url.pathname);
+const base = import.meta.env.BASE_URL.replace(/\/$/, '');
+const isOverview = Astro.url.pathname.replace(/\/$/, '') === base;
 ---
 
 {currentVersion.id === 'dev' && (
@@ -10,9 +12,17 @@ const stable = versionDestination(versions[0], Astro.url.pathname);
     <a href={stable.href}>Latest release: {latestRelease}</a>
   </p>
 )}
-<DefaultPageTitle {...Astro.props} />
+{isOverview ? (
+  <h1 id="_top" class="overview-title">
+    <span class="sr-only">cpo3</span>
+    <img class="dark:sl-hidden" src={`${base}/brand/logo-light@8x.png`} width="216" height="88" alt="" />
+    <img class="light:sl-hidden" src={`${base}/brand/logo-dark@8x.png`} width="216" height="88" alt="" />
+  </h1>
+) : <DefaultPageTitle {...Astro.props} />}
 
 <style>
   .version-notice { margin: 0 0 1rem; color: var(--sl-color-gray-2); font-size: 0.875rem; }
   .version-notice a { margin-inline-start: 0.25rem; }
+  .overview-title { margin: 1rem 0 0; line-height: 1; }
+  .overview-title img { width: 216px; height: auto; max-width: 100%; }
 </style>

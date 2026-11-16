@@ -1,5 +1,28 @@
 @import 'katex/dist/katex.min.css';
 
+/* Slightly fuller text while keeping a clear hierarchy. */
+body {
+  font-weight: 450;
+}
+
+.sl-markdown-content :is(h1, h2, h3, h4, h5, h6),
+h1#_top {
+  font-weight: 650;
+}
+
+.sidebar-content a,
+.right-sidebar a,
+.header-link {
+  font-weight: 500;
+}
+
+pre,
+code,
+kbd,
+.katex {
+  font-weight: 400;
+}
+
 /* Logo palette, with tonal variants for surfaces and readable text. */
 :root {
   --cpo3-paprika: #ec4e20;

@@ -108,7 +108,7 @@ available = [solver for solver in cpo3.LinearSolver if solver.is_available()]
 | `CHOLMOD` | A build with CHOLMOD support and a compatible SuiteSparse shared library. `threads` caps OpenMP work; simplicial LDL factorization is sequential. |
 | `PARDISO` | A build with PARDISO support and the Intel MKL shared runtime. Uses MKL's thread-local limit. |
 
-The [installation guide](/installation/#optional-factorization-backends)
+The [installation guide](/site/installation/#optional-factorization-backends)
 contains platform and library setup instructions. Selecting an unavailable
 backend does not silently substitute another. Equality-only problems use Faer
 regardless of this selection.
@@ -120,5 +120,5 @@ booleans and enum variants such as `LinearSolver::Faer`. `time_limit` is an
 `Option<Duration>` and `eq_lsmr_iters` is an `Option<usize>`.
 
 Use `Settings::default()` and struct update syntax to change selected values.
-See [Getting started](/getting-started/#solve-the-problem) for a complete example,
-and the [Rust API](/reference/rust/) for problem and solution types.
+See [Getting started](/site/getting-started/#solve-the-problem) for a complete example,
+and the [Rust API](/site/reference/rust/) for problem and solution types.

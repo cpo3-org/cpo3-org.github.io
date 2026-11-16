@@ -8,8 +8,8 @@ tableOfContents:
 cpo3 is available on [PyPI](https://pypi.org/project/cpo3/) and
 [crates.io](https://crates.io/crates/cpo3). The default Faer backend needs no
 external numerical libraries. After installation, continue to
-[Getting started](/getting-started/) or the
-[mixed-constraint example](/examples/mixed-constraints/).
+[Getting started](/site/getting-started/) or the
+[mixed-constraint example](/site/examples/mixed-constraints/).
 
 ## Python
 
@@ -56,7 +56,7 @@ For an existing application, add the dependency under its existing
 cpo3 = "0.0.1"
 ```
 
-The [Rust example](/getting-started/#solve-the-problem) can replace `src/main.rs`.
+The [Rust example](/site/getting-started/#solve-the-problem) can replace `src/main.rs`.
 Build numerical workloads in release mode:
 
 ```sh
@@ -127,7 +127,7 @@ for solver in cpo3.LinearSolver:
 
 In Rust, use the corresponding enum method, for example
 `LinearSolver::Cholmod.is_available()`. See
-[backend selection and threading](/settings/#factorization-backends) for the
+[backend selection and threading](/site/settings/#factorization-backends) for the
 runtime controls. Equality-only problems always use Faer.
 
 ## Building from source

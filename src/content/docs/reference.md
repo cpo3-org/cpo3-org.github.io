@@ -5,9 +5,9 @@ tableOfContents:
   maxHeadingLevel: 2
 ---
 
-The [Python API](/reference/python/) and [Rust API](/reference/rust/) use the same
+The [Python API](/site/reference/python/) and [Rust API](/site/reference/rust/) use the same
 mathematical conventions. This page defines the problem data and the meaning
-of solver results; see [Settings](/settings/) for controls and tolerances.
+of solver results; see [Settings](/site/settings/) for controls and tolerances.
 
 ## Problem data
 
@@ -84,7 +84,7 @@ of an optimal point; see [termination statuses](#termination-statuses).
 
 Objective and residual fields may be `NaN` when the result is a certificate
 rather than a point. A limit status does not imply that the residuals meet the
-requested tolerances. See [termination tolerances](/settings/#termination-tolerances)
+requested tolerances. See [termination tolerances](/site/settings/#termination-tolerances)
 for the stopping tests.
 
 ### Initialization and presolve

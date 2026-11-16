@@ -8,8 +8,8 @@ tableOfContents:
 import { Tabs, TabItem } from '@astrojs/starlight/components';
 
 This example combines an equality, a general inequality, and variable bounds.
-It assumes you have [installed cpo3](/installation/); the
-[getting started guide](/getting-started/) introduces the basic interface.
+It assumes you have [installed cpo3](/site/installation/); the
+[getting started guide](/site/getting-started/) introduces the basic interface.
 
 ## Problem
 
@@ -107,7 +107,7 @@ if solution.status == cpo3.SolverStatus.SOLVED:
 </TabItem>
 <TabItem label="Rust">
 
-In your [Rust application](/installation/#rust), replace `src/main.rs` with
+In your [Rust application](/site/installation/#rust), replace `src/main.rs` with
 the following and run `cargo run --release`:
 
 ```rust title="src/main.rs"
@@ -171,5 +171,5 @@ A^\mathsf{T}y=\begin{pmatrix}-1\\0\\-3\end{pmatrix}.
 $$
 
 Numerical results satisfy these conditions to the solver's tolerances, so
-near-zero entries may have either sign. See [conventions](/reference/) for
+near-zero entries may have either sign. See [conventions](/site/reference/) for
 residual definitions and the interpretation of other termination statuses.

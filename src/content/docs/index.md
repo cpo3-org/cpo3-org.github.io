@@ -8,11 +8,11 @@ next: false
 <p class="home-summary">An interior-point solver for linear and quadratic optimization.</p>
 
 <nav class="home-links" aria-label="Documentation links">
-  <a href="/installation/">Installation</a>
-  <a href="/getting-started/">Getting started</a>
-  <a href="/reference/python/">Python API</a>
-  <a href="/reference/rust/">Rust API</a>
-  <a href="/settings/">Settings</a>
+  <a href="/site/installation/">Installation</a>
+  <a href="/site/getting-started/">Getting started</a>
+  <a href="/site/reference/python/">Python API</a>
+  <a href="/site/reference/rust/">Rust API</a>
+  <a href="/site/settings/">Settings</a>
   <a href="https://github.com/cpo3-org/cpo3">Source code</a>
 </nav>
 
@@ -58,6 +58,6 @@ if solution.status == cpo3.SolverStatus.SOLVED:
     print(solution.x)  # approximately [0.5, 2.0]
 ```
 
-The [getting started guide](/getting-started/) walks through this example in
-both Python and Rust. See [mixed constraints](/examples/mixed-constraints/)
+The [getting started guide](/site/getting-started/) walks through this example in
+both Python and Rust. See [mixed constraints](/site/examples/mixed-constraints/)
 for a problem with equalities, inequalities, and variable bounds.

@@ -5,6 +5,8 @@ import rehypeKatex from 'rehype-katex';
 import { unified } from '@astrojs/markdown-remark';
 
 export default defineConfig({
+  site: 'https://cpo3-org.github.io',
+  base: '/site',
   markdown: {
     processor: unified({
       remarkPlugins: [remarkMath],

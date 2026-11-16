@@ -8,7 +8,7 @@ tableOfContents:
 import { Tabs, TabItem } from '@astrojs/starlight/components';
 
 This guide solves a small quadratic program and explains the result.
-Follow [Installation](/installation/) first, then choose Python or Rust below;
+Follow [Installation](/site/installation/) first, then choose Python or Rust below;
 both examples solve the same problem.
 
 ## The example problem
@@ -78,11 +78,11 @@ SolverStatus.SOLVED
 
 The solver returns floating-point approximations, so the last few digits may
 differ. For a source checkout, use the
-[uv command for your build](/installation/#python-checkout) instead.
+[uv command for your build](/site/installation/#python-checkout) instead.
 
 ### Set options
 
-Pass a [`Settings`](/settings/) object to change the defaults. For example, print progress
+Pass a [`Settings`](/site/settings/) object to change the defaults. For example, print progress
 and set a time limit of 30 seconds:
 
 ```python
@@ -95,7 +95,7 @@ solution = cpo3.solve(problem, settings=settings)
 
 ### Solve
 
-In the application configured during [installation](/installation/#rust),
+In the application configured during [installation](/site/installation/#rust),
 replace `src/main.rs` with:
 
 ```rust title="src/main.rs"
@@ -144,7 +144,7 @@ differ.
 
 ### Set options
 
-Use struct update syntax to change selected [settings](/settings/#rust-settings). Replace the call to
+Use struct update syntax to change selected [settings](/site/settings/#rust-settings). Replace the call to
 `solve` above with:
 
 ```rust
@@ -179,7 +179,7 @@ Variables have no implicit nonnegativity restriction: express lower bounds as
 additional inequality rows.
 
 For a linear program, set `P=None` in Python or pass `None` for the first
-argument to `Problem::new` in Rust. See the [problem-data reference](/reference/#problem-data)
+argument to `Problem::new` in Rust. See the [problem-data reference](/site/reference/#problem-data)
 for dimensions and input conventions.
 
 ## Check the result
@@ -212,11 +212,11 @@ iteration counts. This small example can be solved entirely during presolve,
 so `info.iters` may be zero. For an interior-point run, set `presolve=False` in
 Python or `presolve: false` in Rust.
 
-See [solution fields](/reference/#solutions-and-diagnostics) and
-[termination statuses](/reference/#termination-statuses) for the full interpretation.
+See [solution fields](/site/reference/#solutions-and-diagnostics) and
+[termination statuses](/site/reference/#termination-statuses) for the full interpretation.
 
-For language-specific interfaces, see the [Python API](/reference/python/)
-and [Rust API](/reference/rust/).
+For language-specific interfaces, see the [Python API](/site/reference/python/)
+and [Rust API](/site/reference/rust/).
 
-Next, see [mixed constraints](/examples/mixed-constraints/) to combine equalities,
+Next, see [mixed constraints](/site/examples/mixed-constraints/) to combine equalities,
 inequalities, and variable bounds in one problem.

@@ -7,8 +7,8 @@ tableOfContents:
 
 This page covers usage and ownership. For exhaustive signatures, see the
 [generated Rust API documentation](https://docs.rs/cpo3/latest/cpo3/).
-The [shared conventions](/reference/) define the mathematical formulation and
-result meanings; [Settings](/settings/#rust-settings) describes configuration.
+The [shared conventions](/site/reference/) define the mathematical formulation and
+result meanings; [Settings](/site/settings/#rust-settings) describes configuration.
 
 ## Constructing a problem
 
@@ -75,7 +75,7 @@ subsequent solves.
 Use `Settings::default()` with struct update syntax to override selected
 fields. Numerical defaults are shared with Python; `time_limit` uses
 `Option<Duration>` and `eq_lsmr_iters` uses `Option<usize>`.
-See [Rust settings](/settings/#rust-settings) for details.
+See [Rust settings](/site/settings/#rust-settings) for details.
 
 ### Warm starts
 
@@ -106,7 +106,7 @@ equality-only problems skip this initialization.
 
 Check `solution.status()` before interpreting the vectors. The variants
 `Solved`, `PrimalInfeasible`, `DualInfeasible`, `MaxIterations`, and `TimeLimit`
-have the [shared termination meanings](/reference/#termination-statuses).
+have the [shared termination meanings](/site/reference/#termination-statuses).
 
 `solution.x()`, `y()`, and `s()` return borrowed slices, so repeated access does
 not copy the vectors. Use `.to_vec()` when an owned copy is needed.
@@ -124,7 +124,7 @@ not copy the vectors. Use `.to_vec()` when an owned copy is needed.
 
 For example, use `solution.info().linear_algebra.refinement_solves`, rather
 than the flat `solution.info.refinement_solves` property used in Python.
-The [diagnostic definitions](/reference/#solutions-and-diagnostics) apply to both APIs.
+The [diagnostic definitions](/site/reference/#solutions-and-diagnostics) apply to both APIs.
 
 ## Errors
 
@@ -146,7 +146,7 @@ expressions need a fallback arm.
 ## Features and problem files
 
 The default build uses Faer. The optional `accelerate`, `cholmod`, and `pardiso`
-features enable other backends; see [backend requirements](/settings/#factorization-backends).
+features enable other backends; see [backend requirements](/site/settings/#factorization-backends).
 Check availability, for example with `LinearSolver::Cholmod.is_available()`,
 before selecting a backend that depends on an external runtime.
 

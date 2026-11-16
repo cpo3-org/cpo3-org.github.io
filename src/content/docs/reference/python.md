@@ -6,8 +6,8 @@ tableOfContents:
 ---
 
 The Python interface accepts SciPy sparse matrices and NumPy-compatible vectors.
-See [Conventions](/reference/) for the formulation and result meanings,
-[Settings](/settings/) for solver options, and [Getting started](/getting-started/)
+See [Conventions](/site/reference/) for the formulation and result meanings,
+[Settings](/site/settings/) for solver options, and [Getting started](/site/getting-started/)
 for a complete example.
 
 ## Constructing a problem
@@ -51,7 +51,7 @@ with them raises `NotImplementedError`.
 solution = cpo3.solve(problem, settings=None, warm_start=None)
 ```
 
-Omitting `settings` uses `cpo3.Settings()`; see [Settings](/settings/) for defaults. The solve is synchronous and returns
+Omitting `settings` uses `cpo3.Settings()`; see [Settings](/site/settings/) for defaults. The solve is synchronous and returns
 a `Solution` for ordinary termination, including iteration and time limits.
 Always inspect `solution.status` before using the returned vectors.
 
@@ -88,8 +88,8 @@ if solution.status is cpo3.SolverStatus.SOLVED:
 All diagnostics, including `primary_solves`, `refinement_solves`, and
 `factorizations`, are available directly on `solution.info`. Optional
 initialization flags are `bool` or `None`. See the shared
-[diagnostic definitions](/reference/#solutions-and-diagnostics) and
-[status table](/reference/#termination-statuses) before interpreting the values.
+[diagnostic definitions](/site/reference/#solutions-and-diagnostics) and
+[status table](/site/reference/#termination-statuses) before interpreting the values.
 
 ## Errors
 

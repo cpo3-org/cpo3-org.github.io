@@ -1,58 +1,88 @@
 ---
 title: Getting started
-description: Solve a small quadratic program and interpret primal variables, slacks, and multipliers.
+description: Model and solve a quadratic program with mixed constraints, then interpret its primal and dual solution.
 tableOfContents:
   maxHeadingLevel: 2
 ---
 
 import { Tabs, TabItem } from '@astrojs/starlight/components';
 
-This guide solves a small quadratic program and explains the result.
-Follow [Installation](/site/installation/) first, then choose Python or Rust below;
-both examples solve the same problem.
+This walkthrough maps equalities, inequalities, and variable bounds to cpo3's
+problem data, solves the same quadratic program in Python and Rust, and interprets
+its slacks and dual multipliers. See [Installation](/site/installation/) for setup.
 
-## The example problem
+## Problem
 
-We minimize a quadratic objective subject to two upper bounds:
+Consider the quadratic program
 
 $$
 \begin{aligned}
-\underset{x_1,x_2}{\operatorname{minimize}}\quad
-& \tfrac12(x_1^2+x_2^2)-x_1-2x_2 \\
-\text{subject to}\quad & x_1\leq 0.5, \\
-& x_2\leq 4.
+\underset{x_1,x_2,x_3}{\operatorname{minimize}}\quad
+& \tfrac12(x_1^2+x_2^2+x_3^2)+\tfrac12x_1-\tfrac12x_2+3x_3 \\
+\text{subject to}\quad
+& x_1+x_2+x_3=1, \\
+& x_1+2x_2\leq1.5, \\
+& x_1,x_2,x_3\geq0, \\
+& x_1\leq0.75.
 \end{aligned}
 $$
 
-The unconstrained minimizer is $(1,2)$, so the first bound changes the solution
-to $x=(0.5,2)$, with objective value $-2.375$. The first constraint is active;
-the second has slack. We will check the primal solution, slacks, and multipliers.
+Its solution is $x=(0.5,0.5,0)$, with objective value $0.25$.
+The general inequality and the lower bound on $x_3$ are active; the other
+variable bounds have positive slack.
+
+## Encode the constraints
+
+cpo3 uses $Ax+s=b$. A zero-cone row fixes its slack to zero and therefore
+represents an equality. A nonnegative-cone row has $s\geq0$ and represents
+an inequality of the form $Ax\leq b$.
+
+Variables have no implicit bounds. Write a lower bound $x_j\geq\ell$ as
+$-x_j\leq-\ell$, and an upper bound $x_j\leq u$ directly as a row.
+
+The rows below use **zero-based indices**, matching the code:
+
+| Row | Constraint | Slack | Cone |
+| --- | --- | --- | --- |
+| 0 | $x_1+x_2+x_3=1$ | $0$ | Zero |
+| 1 | $x_1+2x_2\leq1.5$ | $1.5-x_1-2x_2$ | Nonnegative |
+| 2 | $x_1\geq0$ | $x_1$ | Nonnegative |
+| 3 | $x_2\geq0$ | $x_2$ | Nonnegative |
+| 4 | $x_3\geq0$ | $x_3$ | Nonnegative |
+| 5 | $x_1\leq0.75$ | $0.75-x_1$ | Nonnegative |
+
+Use one zero-cone block of dimension 1, followed by one nonnegative-cone block
+of dimension 5. Cone blocks apply to consecutive rows: their order matters,
+and their dimensions sum to the six rows of `A`.
+
+<span id="solve"></span>
 
 ## Solve the problem
 
 <Tabs>
 <TabItem label="Python">
 
-### Solve
-
-Save this as `example.py`:
-
-```python title="example.py"
+```python title="mixed_constraints.py"
 import cpo3
-import numpy as np
-from scipy import sparse
+import scipy as sp
 
 problem = cpo3.Problem(
-    P=sparse.eye(2, format="csc"),
-    c=np.array([-1.0, -2.0]),
-    A=sparse.eye(2, format="csc"),
-    b=np.array([0.5, 4.0]),
-    cones=[cpo3.NonnegativeCone(2)],
+    P=sp.sparse.eye(3, format="csc"),
+    c=[0.5, -0.5, 3.0],
+    A=sp.sparse.csc_matrix([
+        [1.0, 1.0, 1.0],
+        [1.0, 2.0, 0.0],
+        [-1.0, 0.0, 0.0],
+        [0.0, -1.0, 0.0],
+        [0.0, 0.0, -1.0],
+        [1.0, 0.0, 0.0],
+    ]),
+    b=[1.0, 1.5, 0.0, 0.0, 0.0, 0.75],
+    cones=[cpo3.ZeroCone(1), cpo3.NonnegativeCone(5)],
 )
 
 solution = cpo3.solve(problem)
 print(solution.status)
-
 if solution.status == cpo3.SolverStatus.SOLVED:
     print(solution.x)
     print(solution.y)
@@ -60,59 +90,30 @@ if solution.status == cpo3.SolverStatus.SOLVED:
     print(solution.info.pobj)
 ```
 
-Run it in the environment where you installed cpo3:
-
-```sh
-python example.py
-```
-
-The result should be approximately:
-
-```text
-SolverStatus.SOLVED
-[0.5 2. ]
-[0.5 0. ]
-[0. 2.]
--2.375
-```
-
-The solver returns floating-point approximations, so the last few digits may
-differ. For a source checkout, use the
-[uv command for your build](/site/installation/#python-checkout) instead.
-
-### Set options
-
-Pass a [`Settings`](/site/settings/) object to change the defaults. For example, print progress
-and set a time limit of 30 seconds:
-
-```python
-settings = cpo3.Settings(verbose=True, time_limit=30.0)
-solution = cpo3.solve(problem, settings=settings)
-```
-
 </TabItem>
 <TabItem label="Rust">
-
-### Solve
-
-In the application configured during [installation](/site/installation/#rust),
-replace `src/main.rs` with:
 
 ```rust title="src/main.rs"
 use cpo3::{Cone, CscMatrix, Problem, Settings, SolverStatus, solve};
 
 fn main() -> Result<(), Box<dyn std::error::Error>> {
+    let a = CscMatrix::from_triplets(
+        6,
+        3,
+        vec![0, 0, 0, 1, 1, 2, 3, 4, 5],
+        vec![0, 1, 2, 0, 1, 0, 1, 2, 0],
+        vec![1.0, 1.0, 1.0, 1.0, 2.0, -1.0, -1.0, -1.0, 1.0],
+    )?;
     let problem = Problem::new(
-        Some(CscMatrix::identity(2)?),
-        vec![-1.0, -2.0],
-        CscMatrix::identity(2)?,
-        vec![0.5, 4.0],
-        vec![Cone::Nonnegative(2)],
+        Some(CscMatrix::identity(3)?),
+        vec![0.5, -0.5, 3.0],
+        a,
+        vec![1.0, 1.5, 0.0, 0.0, 0.0, 0.75],
+        vec![Cone::Zero(1), Cone::Nonnegative(5)],
     )?;
 
     let solution = solve(&problem, &Settings::default())?;
     println!("{:?}", solution.status());
-
     if solution.status() == SolverStatus::Solved {
         println!("{:?}", solution.x());
         println!("{:?}", solution.y());
@@ -123,100 +124,44 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
 }
 ```
 
-Build and run in release mode for numerical workloads:
-
-```sh
-cargo run --release
-```
-
-After compilation, the result should be approximately:
-
-```text
-Solved
-[0.5, 2.0]
-[0.5, 0.0]
-[0.0, 2.0]
--2.375
-```
-
-The solver returns floating-point approximations, so the last few digits may
-differ.
-
-### Set options
-
-Use struct update syntax to change selected [settings](/site/settings/#rust-settings). Replace the call to
-`solve` above with:
-
-```rust
-let settings = Settings {
-    verbose: true,
-    time_limit: Some(std::time::Duration::from_secs(30)),
-    ..Settings::default()
-};
-let solution = solve(&problem, &settings)?;
-```
-
 </TabItem>
 </Tabs>
 
-## How the data describes the problem
+For a linear program, use `P=None` in Python or `None` for the first argument to
+`Problem::new` in Rust. Solver controls are documented in [Settings](/site/settings/).
 
-cpo3 represents the objective as $\tfrac12 x^\mathsf{T}Px+c^\mathsf{T}x$
-and the constraints as $Ax+s=b$, where $s$ belongs to the specified cones.
-For this example:
-
-| Input | Value | Meaning |
-| --- | --- | --- |
-| `P` | Identity matrix | The quadratic term is $\tfrac12(x_1^2+x_2^2)$. |
-| `c` | `[-1, -2]` | The linear term is $-x_1-2x_2$. |
-| `A` | Identity matrix | One constraint row for each variable. |
-| `b` | `[0.5, 4]` | The two upper bounds. |
-| `cones` | One nonnegative block of dimension 2 | $s\geq0$, so $Ax\leq b$. |
-
-Cone blocks describe consecutive rows of `A` and `b`; their dimensions must sum
-to the number of constraints. A zero-cone block enforces equality on its rows.
-Variables have no implicit nonnegativity restriction: express lower bounds as
-additional inequality rows.
-
-For a linear program, set `P=None` in Python or pass `None` for the first
-argument to `Problem::new` in Rust. See the [problem-data reference](/site/reference/#problem-data)
-for dimensions and input conventions.
-
-## Check the result
+## Interpret the result
 
 Check for `SOLVED` in Python or `Solved` in Rust before interpreting the vectors
-as an optimal solution. The solver may instead return an infeasibility
-certificate or stop at an iteration or time limit.
-
-For a solved problem, `x` contains the primal variables, `y` the dual
-multipliers, and `s` the constraint slacks, all in the original problem units.
-Here the values should be approximately
+as an optimal solution. Other statuses can indicate an infeasibility certificate
+or termination at a time or iteration limit. For this problem, the primal variables
+`x`, dual multipliers `y`, and slacks `s` are approximately
 
 $$
-x=\begin{pmatrix}0.5\\2\end{pmatrix},\qquad
-y=\begin{pmatrix}0.5\\0\end{pmatrix},\qquad
-s=\begin{pmatrix}0\\2\end{pmatrix}.
+x=\begin{pmatrix}0.5\\0.5\\0\end{pmatrix},\qquad
+y=\begin{pmatrix}-2\\1\\0\\0\\1\\0\end{pmatrix},\qquad
+s=\begin{pmatrix}0\\0\\0.5\\0.5\\0\\0.25\end{pmatrix}.
 $$
 
-The first bound is active: $x_1=0.5$ and $s_1=0$. Its positive multiplier
-$y_1=0.5$ indicates that relaxing this bound would decrease the optimal
-objective, locally at a rate of $0.5$ per unit. The second bound is inactive:
-$s_2=2$ and $y_2=0$.
+The entries of `y` and `s` follow the row order of `A`. The equality multiplier
+is $-2$; equality multipliers can have either sign. The inequality multipliers
+are nonnegative. The general inequality and the lower bound on $x_3$ each
+have multiplier 1 and zero slack. The remaining bounds have zero multipliers
+and positive slacks. Locally, relaxing the general inequality's right-hand side
+by a small amount reduces the optimal objective at a rate of 1 per unit.
 
 These values satisfy primal feasibility $Ax+s=b$, stationarity
-$Px+c+A^\mathsf{T}y=0$, and complementarity $s_i y_i=0$.
-Small residuals, near-zero values, and signed zeros are normal in numerical output.
+$Px+c+A^\mathsf{T}y=0$, and complementarity $s_i y_i=0$. In particular,
 
-The `info` object reports objective values, residual norms, elapsed time, and
-iteration counts. This small example can be solved entirely during presolve,
-so `info.iters` may be zero. For an interior-point run, set `presolve=False` in
-Python or `presolve: false` in Rust.
+$$
+Px+c=\begin{pmatrix}1\\0\\3\end{pmatrix},\qquad
+A^\mathsf{T}y=\begin{pmatrix}-1\\0\\-3\end{pmatrix}.
+$$
 
-See [solution fields](/site/reference/#solutions-and-diagnostics) and
-[termination statuses](/site/reference/#termination-statuses) for the full interpretation.
+Results are returned in the original problem dimensions and units. If presolve
+completes a solve, `info.iters` can be zero; set `presolve=False` in Python or
+`presolve: false` in Rust to exercise the interior-point method.
 
-For language-specific interfaces, see the [Python API](/site/reference/python/)
-and [Rust API](/site/reference/rust/).
-
-Next, see [mixed constraints](/site/examples/mixed-constraints/) to combine equalities,
-inequalities, and variable bounds in one problem.
+See [Conventions](/site/reference/#solutions-and-diagnostics) for residuals and
+certificate definitions, and the [Python](/site/reference/python/) and
+[Rust](/site/reference/rust/) references for interface details.

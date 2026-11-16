@@ -3,20 +3,31 @@ import starlight from '@astrojs/starlight';
 import remarkMath from 'remark-math';
 import rehypeKatex from 'rehype-katex';
 import { unified } from '@astrojs/markdown-remark';
+import { currentVersion, sidebar } from './docs.config.mjs';
+import versionLinks from './src/lib/version-links.mjs';
 
 export default defineConfig({
   site: 'https://cpo3-org.github.io',
-  base: '/site',
+  base: currentVersion.base,
+  outDir: process.env.DOCS_OUT_DIR || './dist',
+  cacheDir: `./.astro/${currentVersion.id}`,
+  redirects: {
+    '/examples/mixed-constraints/': `${currentVersion.base}/getting-started/`,
+  },
   markdown: {
     processor: unified({
-      remarkPlugins: [remarkMath],
+      remarkPlugins: [remarkMath, [versionLinks, { base: currentVersion.base }]],
       rehypePlugins: [rehypeKatex],
     }),
   },
   integrations: [
     starlight({
       title: 'cpo3',
-      components: { SiteTitle: './src/components/SiteTitle.astro' },
+      components: {
+        SiteTitle: './src/components/SiteTitle.astro',
+        SocialIcons: './src/components/SocialIcons.astro',
+        PageTitle: './src/components/PageTitle.astro',
+      },
       customCss: ['./src/styles/theme.css'],
       expressiveCode: {
         useStarlightUiThemeColors: false,
@@ -42,24 +53,7 @@ export default defineConfig({
           },
         },
       },
-      sidebar: [
-        { label: 'Overview', slug: 'index' },
-        { label: 'Installation', slug: 'installation' },
-        { label: 'Getting started', slug: 'getting-started' },
-        {
-          label: 'Examples',
-          items: [{ label: 'Mixed constraints', slug: 'examples/mixed-constraints' }],
-        },
-        {
-          label: 'API reference',
-          items: [
-            { label: 'Conventions', slug: 'reference' },
-            { label: 'Python', slug: 'reference/python' },
-            { label: 'Rust', slug: 'reference/rust' },
-          ],
-        },
-        { label: 'Settings', slug: 'settings' },
-      ],
+      sidebar,
     }),
   ],
 });

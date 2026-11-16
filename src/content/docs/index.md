@@ -7,13 +7,11 @@ next: false
 
 <p class="home-summary">An interior-point solver for linear and quadratic optimization.</p>
 
+This documentation follows development on the **`main` branch**.
+
 <nav class="home-links" aria-label="Documentation links">
   <a href="/site/installation/">Installation</a>
   <a href="/site/getting-started/">Getting started</a>
-  <a href="/site/reference/python/">Python API</a>
-  <a href="/site/reference/rust/">Rust API</a>
-  <a href="/site/settings/">Settings</a>
-  <a href="https://github.com/cpo3-org/cpo3">Source code</a>
 </nav>
 
 ## Problem formulation
@@ -23,8 +21,7 @@ cpo3 solves convex optimization problems of the form
 $$
 \begin{aligned}
 \underset{x,\,s}{\operatorname{minimize}}\quad & \tfrac12 x^\mathsf{T}Px + c^\mathsf{T}x \\
-\text{subject to}\quad & Ax+s=b, \\
-& s\in\mathcal K.
+\text{subject to}\quad & Ax+s=b,\quad s\in\mathcal{K}.
 \end{aligned}
 $$
 
@@ -32,32 +29,39 @@ The matrix $P$ is symmetric positive semidefinite. The cone $\mathcal K$ is a
 product of zero and nonnegative cones, representing equality and inequality
 constraints. Setting $P=0$ gives a linear program.
 
-The solver is implemented in Rust and provides a Python interface. Problem data
-are supplied as sparse matrices and dense vectors.
+## Method and performance
 
-## A quadratic program in Python
+The solver uses an infeasible-start, primal–dual interior-point method with
+predictor–corrector steps based on a novel strongly monotone central path equation.
+It handles quadratic objectives directly and uses a homogeneous embedding to
+detect primal and dual infeasibility.
 
-Define the objective and constraints with sparse matrices, then call `solve`.
-This two-variable quadratic program has upper bounds on both variables and
-solution $x=(0.5,2)$; the first upper bound is active.
+In the paper's [benchmark results](https://arxiv.org/pdf/2611.18403#page=41),
+cpo3 returned verified solutions for **640 of 675 problems**, the highest count
+among all tested open-source and commercial solvers. It also recorded the lowest
+penalized shifted geometric mean runtime among the tested open-source solvers.
 
-```python title="example.py"
-import cpo3
-from scipy import sparse
+The [getting-started guide](/site/getting-started/) works through a quadratic
+program with equalities, inequalities, and variable bounds in Python and Rust,
+including how to interpret slacks and dual multipliers. The
+[conventions reference](/site/reference/) defines data requirements, optimality
+conditions, and infeasibility certificates.
 
-problem = cpo3.Problem(
-    P=sparse.eye(2, format="csc"),
-    c=[-1.0, -2.0],
-    A=sparse.eye(2, format="csc"),
-    b=[0.5, 4.0],
-    cones=[cpo3.NonnegativeCone(2)],
-)
+## Citation
 
-solution = cpo3.solve(problem)
-if solution.status == cpo3.SolverStatus.SOLVED:
-    print(solution.x)  # approximately [0.5, 2.0]
+If you use cpo3 in your research, please cite:
+
+Michael Cummins, Matteo Santamaria, and Brendan O'Donoghue (2026).
+[Strongly Monotone Central Path Equations for Quadratic Cone Programs](https://arxiv.org/abs/2611.18403).
+
+```bibtex
+@misc{cpo3,
+  title         = {Strongly Monotone Central Path Equations for Quadratic Cone Programs},
+  author        = {Michael Cummins and Matteo Santamaria and Brendan O'Donoghue},
+  year          = {2026},
+  eprint        = {2611.18403},
+  archivePrefix = {arXiv},
+  primaryClass  = {math.OC},
+  url           = {https://arxiv.org/abs/2611.18403}
+}
 ```
-
-The [getting started guide](/site/getting-started/) walks through this example in
-both Python and Rust. See [mixed constraints](/site/examples/mixed-constraints/)
-for a problem with equalities, inequalities, and variable bounds.

@@ -2,12 +2,12 @@
 title: Settings
 description: Solver controls, stopping tolerances, initialization, and factorization backends.
 tableOfContents:
-  maxHeadingLevel: 2
+  maxHeadingLevel: 3
 ---
 
 `Settings` is an immutable, keyword-only dataclass. Construct a new instance,
-or use `dataclasses.replace`, to change settings. Defaults below match the
-current implementation.
+or use `dataclasses.replace`, to change settings. Defaults below are for
+the **`main` branch**.
 
 ```python
 settings = cpo3.Settings(verbose=True, time_limit=30.0, threads=1)
@@ -23,6 +23,9 @@ solution = cpo3.solve(problem, settings=settings)
 | `verbose` | `False` | Print settings, progress, and the final summary. |
 | `presolve` | `True` | Simplify the problem and recover results in the original coordinates. |
 
+All numerical settings must be finite when supplied. Iteration limits and
+`threads` must be nonnegative integers, with `max_iters` strictly positive.
+
 ## Termination tolerances
 
 | Setting | Default | Meaning |
@@ -30,9 +33,6 @@ solution = cpo3.solve(problem, settings=settings)
 | `tol_feas` | `1e-8` | Positive tolerance for primal and dual residuals, scaled by their equations as described below. |
 | `tol_gap_abs` | `1e-8` | Positive absolute duality-gap tolerance. |
 | `tol_gap_rel` | `1e-8` | Positive relative duality-gap tolerance. |
-| `tol_infeas_abs` | `1e-8` | Nonnegative threshold for a negative certificate slope: $b^\mathsf{T}y$ or $c^\mathsf{T}x$. |
-| `tol_infeas_rel` | `1e-8` | Nonnegative tolerance for certificate residuals normalized by the certificate slope and ray norms. |
-| `certificate_ktratio` | `1e9` | Homogeneous ratio $\kappa/\tau$ above which the interior-point path considers certificates; must be at least one. |
 
 Optimality requires both feasibility tests and either the absolute or relative
 duality-gap test. The feasibility tests are
@@ -52,47 +52,14 @@ The reported `pres` and `dres` are **unscaled residual norms**, not these
 normalized stopping scores. Optimality measures are evaluated in the original
 problem coordinates, including when presolve or equilibration is enabled.
 
-## Initialization and equilibration
-
-| Setting | Default | Meaning |
-| --- | --- | --- |
-| `force_warm_start` | `False` | Use the best finite interior warm-start candidate even if it fails the score threshold. Has no effect without a warm start or on equality-only problems. |
-| `cvxopt_init` | `False` | Try a CVXOPT/Clarabel-style linear-system initialization when no warm start is accepted; fall back to the canonical spherical point on failure. |
-| `initial_mu` | `1.0` | Initial complementarity for the canonical spherical point; must lie in $(0,1]$. Does not affect accepted warm or CVXOPT-style starts, or equality-only problems. |
-| `ruiz_iters` | `2` | Maximum Ruiz equilibration passes; zero disables equilibration. |
-| `ruiz_tol` | `1e-2` | Nonnegative stopping tolerance for nonzero, cone-compatible augmented row infinity norms relative to one. |
-| `step_fraction` | `0.999` | Fraction of the step to the cone boundary; must lie strictly between zero and one. |
-
-## Linear systems and refinement
-
-| Setting | Default | Meaning |
-| --- | --- | --- |
-| `linear_solver` | `LinearSolver.FAER` | Factorization backend for the interior-point path; see [backend selection](#factorization-backends). |
-| `threads` | `0` | Maximum parallelism; zero uses the backend default, one requests sequential execution. Accelerate requires zero. |
-| `eliminate_bounds` | `True` | Fold single-nonzero nonnegative-cone rows into the primal diagonal of the KKT system. |
-| `refine_init_reg` | `1e-12` | Initial nonnegative diagonal-magnitude floor for KKT factorization. Adapted during the solve; zero starts at the lower bound `1e-20`. |
-| `refine_iters` | `30` | Maximum correction solves per KKT right-hand side. Zero keeps the initial solve without corrections. |
-| `refine_tol` | `1e-7` | Positive componentwise backward-error target. Refinement may stop earlier if further corrections are unlikely to help. |
-
-Refinement targets the original KKT system despite regularization of the
-factorization. Equality-only problems use the following controls instead of
-`max_iters`, `refine_iters`, `refine_tol`, and `refine_init_reg`.
-
-## Equality-only problems
-
-| Setting | Default | Meaning |
-| --- | --- | --- |
-| `eq_lsmr_iters` | `None` | Maximum LSMR iterations. `None` uses `max(4 * (m + n), 32)` after presolve. Zero skips LSMR iterations but still checks the initial point. |
-| `eq_refine_iters` | `10` | Maximum refinement corrections after the direct solve, before LSMR. Zero proceeds directly to LSMR if needed. |
-
-This path always uses Faer with regularized LDL factorization and LSMR, and
-checks the same optimality tolerances as the interior-point path. Its LSMR
-iteration count is reported separately from `info.iters`.
-
-All numerical settings must be finite when supplied. Iteration limits and
-`threads` must be nonnegative integers, with `max_iters` strictly positive.
+Certificate tolerances are listed under [Infeasibility detection](#infeasibility-detection).
 
 ## Factorization backends
+
+| Setting | Default | Meaning |
+| --- | --- | --- |
+| `linear_solver` | `LinearSolver.FAER` | Factorization backend for the interior-point path. |
+| `threads` | `0` | Maximum parallelism; zero uses the backend default, one requests sequential execution. Accelerate requires zero. |
 
 Select a backend with the `cpo3.LinearSolver` enum. Check its availability in
 the current build and runtime before selecting it:
@@ -122,3 +89,48 @@ booleans and enum variants such as `LinearSolver::Faer`. `time_limit` is an
 Use `Settings::default()` and struct update syntax to change selected values.
 See [Getting started](/site/getting-started/#solve-the-problem) for a complete example,
 and the [Rust API](/site/reference/rust/) for problem and solution types.
+
+## Advanced settings
+
+### Infeasibility detection
+
+| Setting | Default | Meaning |
+| --- | --- | --- |
+| `tol_infeas_abs` | `1e-8` | Nonnegative threshold for a negative certificate slope: $b^\mathsf{T}y$ or $c^\mathsf{T}x$. |
+| `tol_infeas_rel` | `1e-8` | Nonnegative tolerance for certificate residuals normalized by the certificate slope and ray norms. |
+| `certificate_ktratio` | `1e9` | Homogeneous ratio $\kappa/\tau$ above which the interior-point path considers certificates; must be at least one. |
+
+### Initialization and equilibration
+
+| Setting | Default | Meaning |
+| --- | --- | --- |
+| `force_warm_start` | `False` | Use the best finite interior warm-start candidate even if it fails the score threshold. Has no effect without a warm start or on equality-only problems. |
+| `cvxopt_init` | `False` | Try a CVXOPT/Clarabel-style linear-system initialization when no warm start is accepted; fall back to the canonical spherical point on failure. |
+| `initial_mu` | `1.0` | Initial complementarity for the canonical spherical point; must lie in $(0,1]$. Does not affect accepted warm or CVXOPT-style starts, or equality-only problems. |
+| `ruiz_iters` | `2` | Maximum Ruiz equilibration passes; zero disables equilibration. |
+| `ruiz_tol` | `1e-2` | Nonnegative stopping tolerance for nonzero, cone-compatible augmented row infinity norms relative to one. |
+| `step_fraction` | `0.999` | Fraction of the step to the cone boundary; must lie strictly between zero and one. |
+
+### Linear systems and refinement
+
+| Setting | Default | Meaning |
+| --- | --- | --- |
+| `eliminate_bounds` | `True` | Fold single-nonzero nonnegative-cone rows into the primal diagonal of the KKT system. |
+| `refine_init_reg` | `1e-12` | Initial nonnegative diagonal-magnitude floor for KKT factorization. Adapted during the solve; zero starts at the lower bound `1e-20`. |
+| `refine_iters` | `30` | Maximum correction solves per KKT right-hand side. Zero keeps the initial solve without corrections. |
+| `refine_tol` | `1e-7` | Positive componentwise backward-error target. Refinement may stop earlier if further corrections are unlikely to help. |
+
+Refinement targets the original KKT system despite regularization of the
+factorization. Equality-only problems use the following controls instead of
+`max_iters`, `refine_iters`, `refine_tol`, and `refine_init_reg`.
+
+### Equality-only problems
+
+| Setting | Default | Meaning |
+| --- | --- | --- |
+| `eq_lsmr_iters` | `None` | Maximum LSMR iterations. `None` uses `max(4 * (m + n), 32)` after presolve. Zero skips LSMR iterations but still checks the initial point. |
+| `eq_refine_iters` | `10` | Maximum refinement corrections after the direct solve, before LSMR. Zero proceeds directly to LSMR if needed. |
+
+This path always uses Faer with regularized LDL factorization and LSMR, and
+checks the same optimality tolerances as the interior-point path. Its LSMR
+iteration count is reported separately from `info.iters`.

@@ -5,63 +5,35 @@ tableOfContents:
   maxHeadingLevel: 2
 ---
 
-cpo3 is available on [PyPI](https://pypi.org/project/cpo3/) and
-[crates.io](https://crates.io/crates/cpo3). The default Faer backend needs no
-external numerical libraries. After installation, continue to
-[Getting started](/site/getting-started/) or the
-[mixed-constraint example](/site/examples/mixed-constraints/).
+These instructions install the development version from `main`. For published
+packages, select the latest release in the version menu. The default Faer
+backend needs no external numerical libraries.
 
 ## Python
 
-Use Python **3.10 or later**, preferably in a virtual environment. Install the
-released package into the environment you will use to run your scripts:
+Requires Python **3.10 or later**, Rust **1.91 or later**, Git, and a platform
+C/C++ build toolchain.
 
 ```sh
-python -m pip install cpo3==0.0.1
+python -m pip install "cpo3 @ git+https://github.com/cpo3-org/cpo3.git@main"
 ```
 
-NumPy and SciPy are installed as dependencies. Verify the installation:
+NumPy and SciPy are installed as dependencies.
 
-```sh
-python -c "import cpo3; print(cpo3.LinearSolver.FAER.is_available())"
-```
-
-This should print `True`. Run examples with the same interpreter:
-
-```sh
-python example.py
-```
-
-Release wheels are available for macOS 13 or later on Apple Silicon and Intel,
-Windows x86-64, and Linux x86-64 with glibc 2.28 or later. Installing a compatible
-wheel does not require Rust. On other platforms, pip may build from source;
-see [source builds](#building-from-source) for the toolchain requirements.
+This builds the Python extension from source. For an editable checkout and
+optional backend features, see [source builds](#building-from-source).
 
 ## Rust
 
-Install [Rust 1.91 or later](https://www.rust-lang.org/tools/install), including
-the platform linker required by the Rust toolchain. Create an application:
-
-```sh
-cargo new cpo3-example
-cd cpo3-example
-cargo add cpo3@0.0.1
-```
-
-For an existing application, add the dependency under its existing
-`[dependencies]` section instead:
+Requires Rust **1.91 or later**. Add cpo3 to `Cargo.toml`:
 
 ```toml title="Cargo.toml"
 [dependencies]
-cpo3 = "0.0.1"
+cpo3 = { git = "https://github.com/cpo3-org/cpo3.git", branch = "main" }
 ```
 
-The [Rust example](/site/getting-started/#solve-the-problem) can replace `src/main.rs`.
-Build numerical workloads in release mode:
-
-```sh
-cargo run --release
-```
+Use Cargo's release profile when measuring solver performance: debug builds
+disable compiler optimizations and can substantially increase solve times.
 
 Enable the `mps` feature if you need to read MPS or QPS files. Optional
 factorization backends use the `accelerate`, `cholmod`, and `pardiso` features.
@@ -69,12 +41,13 @@ For example, to add file loading:
 
 ```toml title="Cargo.toml"
 [dependencies]
-cpo3 = { version = "0.0.1", features = ["mps"] }
+cpo3 = { git = "https://github.com/cpo3-org/cpo3.git", branch = "main", features = ["mps"] }
 ```
 
 ## Optional factorization backends
 
-The Python release wheels include these integrations:
+Development builds use Faer by default. Enable the corresponding build features
+to use optional backends. For comparison, the Python release wheels include:
 
 | Platform | Included integrations |
 | --- | --- |
@@ -139,7 +112,7 @@ build toolchain, and Git. For Python, also install Python 3.10 or later and
 ### Python checkout
 
 ```sh
-git clone https://github.com/cpo3-org/cpo3.git
+git clone --branch main https://github.com/cpo3-org/cpo3.git
 cd cpo3
 uv sync
 ```
@@ -163,13 +136,13 @@ containing `cholmod.h`.
 
 ### Rust checkout dependency
 
-To use the development version in a Rust application, replace the released
-dependency with:
+The Git dependency above tracks `main`. To use a local solver checkout instead:
 
 ```toml title="Cargo.toml"
 [dependencies]
-cpo3 = { git = "https://github.com/cpo3-org/cpo3.git" }
+cpo3 = { path = "../cpo3" }
 ```
 
 Add `features = ["mps"]` or the desired backend features to the same dependency
-entry as needed. Use a `rev` field to pin a Git revision for reproducible builds.
+entry as needed. For reproducible Git dependencies, replace `branch` with a
+`rev` field that pins a specific Git revision.

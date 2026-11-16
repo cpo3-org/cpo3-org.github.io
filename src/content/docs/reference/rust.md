@@ -6,7 +6,8 @@ tableOfContents:
 ---
 
 This page covers usage and ownership. For exhaustive signatures, see the
-[generated Rust API documentation](https://docs.rs/cpo3/latest/cpo3/).
+[generated Rust API documentation for release 0.0.1](https://docs.rs/cpo3/0.0.1/cpo3/).
+For the development API, run `cargo doc --open` in your solver checkout.
 The [shared conventions](/site/reference/) define the mathematical formulation and
 result meanings; [Settings](/site/settings/#rust-settings) describes configuration.
 
@@ -17,27 +18,8 @@ and returns `Result<Problem, ProblemError>`. Use `None` for the quadratic
 matrix of a linear program. When present, `p` must be the full symmetric matrix,
 not just one triangle; positive semidefiniteness is a modeling requirement.
 
-```rust
-use cpo3::{Cone, CscMatrix, Problem, Settings, SolverStatus, solve};
-
-fn main() -> Result<(), Box<dyn std::error::Error>> {
-    let problem = Problem::new(
-        Some(CscMatrix::identity(2)?),
-        vec![-1.0, -2.0],
-        CscMatrix::identity(2)?,
-        vec![0.5, 4.0],
-        vec![Cone::Nonnegative(2)],
-    )?;
-    let settings = Settings::default();
-    let solution = solve(&problem, &settings)?;
-
-    if solution.status() == SolverStatus::Solved {
-        println!("{:?}", solution.x()); // approximately [0.5, 2.0]
-        println!("{}", solution.info().pobj); // approximately -2.375
-    }
-    Ok(())
-}
-```
+See the [worked example](/site/getting-started/#solve-the-problem) for a complete
+problem construction and solve.
 
 Use `Cone::Zero(k)` for equality rows and `Cone::Nonnegative(k)` for inequality
 rows. Blocks cover consecutive rows and must have positive dimensions summing
@@ -72,8 +54,7 @@ and returns `Result<Solution, SolveError>`. The returned `Solution` owns its
 vectors and does not borrow the problem. The inputs remain available for
 subsequent solves.
 
-Use `Settings::default()` with struct update syntax to override selected
-fields. Numerical defaults are shared with Python; `time_limit` uses
+Numerical defaults are shared with Python; `time_limit` uses
 `Option<Duration>` and `eq_lsmr_iters` uses `Option<usize>`.
 See [Rust settings](/site/settings/#rust-settings) for details.
 
@@ -84,7 +65,7 @@ $n$, $m$, and $m$ and use original problem units. A previous optimal solution
 can supply the vectors for another solve:
 
 ```rust
-use cpo3::{WarmStart, solve_from};
+use cpo3::{SolverStatus, WarmStart, solve_from};
 
 if solution.status() == SolverStatus::Solved {
     let warm = WarmStart {
@@ -139,7 +120,6 @@ Ordinary termination, including limits and infeasibility certificates, returns
 | `SolveError::Unimplemented` | A requested cone is unsupported. |
 | `SolveError::Numerical` | A numerical solve failed, including an unavailable backend. |
 
-Use `?` to propagate errors or match on them when recovery is appropriate.
 `SolveError` and `SolverStatus` are non-exhaustive enums, so downstream `match`
 expressions need a fallback arm.
 

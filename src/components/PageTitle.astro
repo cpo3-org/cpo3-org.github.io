@@ -1,0 +1,18 @@
+---
+import DefaultPageTitle from '@astrojs/starlight/components/PageTitle.astro';
+import { currentVersion, latestRelease, versions, versionDestination } from '../../docs.config.mjs';
+const stable = versionDestination(versions[0], Astro.url.pathname);
+---
+
+{currentVersion.id === 'dev' && (
+  <p class="version-notice" data-pagefind-ignore>
+    Development documentation · tracks <code>main</code>.
+    <a href={stable.href}>Latest release: {latestRelease}</a>
+  </p>
+)}
+<DefaultPageTitle {...Astro.props} />
+
+<style>
+  .version-notice { margin: 0 0 1rem; color: var(--sl-color-gray-2); font-size: 0.875rem; }
+  .version-notice a { margin-inline-start: 0.25rem; }
+</style>

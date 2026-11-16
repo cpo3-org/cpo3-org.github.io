@@ -4,8 +4,9 @@
   "private": true,
   "type": "module",
   "scripts": {
+    "test": "node --test scripts/*.test.mjs",
     "dev": "astro dev --host 127.0.0.1",
-    "build": "astro build",
+    "build": "node scripts/build.mjs",
     "preview": "astro preview --host 127.0.0.1"
   },
   "engines": {

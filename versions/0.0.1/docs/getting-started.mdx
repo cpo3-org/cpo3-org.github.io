@@ -1,15 +1,15 @@
 ---
-title: Mixed constraints
-description: Combine equalities, inequalities, and variable bounds in a quadratic program.
+title: Getting started
+description: Model and solve a quadratic program with mixed constraints, then interpret its primal and dual solution.
 tableOfContents:
   maxHeadingLevel: 2
 ---
 
 import { Tabs, TabItem } from '@astrojs/starlight/components';
 
-This example combines an equality, a general inequality, and variable bounds.
-It assumes you have [installed cpo3](/site/installation/); the
-[getting started guide](/site/getting-started/) introduces the basic interface.
+This walkthrough maps equalities, inequalities, and variable bounds to cpo3's
+problem data, solves the same quadratic program in Python and Rust, and interprets
+its slacks and dual multipliers. See [Installation](/site/installation/) for setup.
 
 ## Problem
 
@@ -39,20 +39,6 @@ an inequality of the form $Ax\leq b$.
 
 Variables have no implicit bounds. Write a lower bound $x_j\geq\ell$ as
 $-x_j\leq-\ell$, and an upper bound $x_j\leq u$ directly as a row.
-For this problem, choose
-
-$$
-P=I_3,\qquad c=\begin{pmatrix}0.5\\-0.5\\3\end{pmatrix},\qquad
-A=\begin{pmatrix}
-1&1&1\\
-1&2&0\\
--1&0&0\\
-0&-1&0\\
-0&0&-1\\
-1&0&0
-\end{pmatrix},\qquad
-b=\begin{pmatrix}1\\1.5\\0\\0\\0\\0.75\end{pmatrix}.
-$$
 
 The rows below use **zero-based indices**, matching the code:
 
@@ -69,21 +55,21 @@ Use one zero-cone block of dimension 1, followed by one nonnegative-cone block
 of dimension 5. Cone blocks apply to consecutive rows: their order matters,
 and their dimensions sum to the six rows of `A`.
 
-## Solve
+<span id="solve"></span>
+
+## Solve the problem
 
 <Tabs>
 <TabItem label="Python">
 
-Save this as `mixed_constraints.py` and run `python mixed_constraints.py`:
-
 ```python title="mixed_constraints.py"
 import cpo3
-from scipy import sparse
+import scipy as sp
 
 problem = cpo3.Problem(
-    P=sparse.eye(3, format="csc"),
+    P=sp.sparse.eye(3, format="csc"),
     c=[0.5, -0.5, 3.0],
-    A=sparse.csc_matrix([
+    A=sp.sparse.csc_matrix([
         [1.0, 1.0, 1.0],
         [1.0, 2.0, 0.0],
         [-1.0, 0.0, 0.0],
@@ -106,9 +92,6 @@ if solution.status == cpo3.SolverStatus.SOLVED:
 
 </TabItem>
 <TabItem label="Rust">
-
-In your [Rust application](/site/installation/#rust), replace `src/main.rs` with
-the following and run `cargo run --release`:
 
 ```rust title="src/main.rs"
 use cpo3::{Cone, CscMatrix, Problem, Settings, SolverStatus, solve};
@@ -141,14 +124,18 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
 }
 ```
 
-The triplets specify the row, column, and value of each nonzero entry of `A`.
-
 </TabItem>
 </Tabs>
 
+For a linear program, use `P=None` in Python or `None` for the first argument to
+`Problem::new` in Rust. Solver controls are documented in [Settings](/site/settings/).
+
 ## Interpret the result
 
-After checking for a solved status, expect approximately
+Check for `SOLVED` in Python or `Solved` in Rust before interpreting the vectors
+as an optimal solution. Other statuses can indicate an infeasibility certificate
+or termination at a time or iteration limit. For this problem, the primal variables
+`x`, dual multipliers `y`, and slacks `s` are approximately
 
 $$
 x=\begin{pmatrix}0.5\\0.5\\0\end{pmatrix},\qquad
@@ -160,7 +147,8 @@ The entries of `y` and `s` follow the row order of `A`. The equality multiplier
 is $-2$; equality multipliers can have either sign. The inequality multipliers
 are nonnegative. The general inequality and the lower bound on $x_3$ each
 have multiplier 1 and zero slack. The remaining bounds have zero multipliers
-and positive slacks.
+and positive slacks. Locally, relaxing the general inequality's right-hand side
+by a small amount reduces the optimal objective at a rate of 1 per unit.
 
 These values satisfy primal feasibility $Ax+s=b$, stationarity
 $Px+c+A^\mathsf{T}y=0$, and complementarity $s_i y_i=0$. In particular,
@@ -170,6 +158,10 @@ Px+c=\begin{pmatrix}1\\0\\3\end{pmatrix},\qquad
 A^\mathsf{T}y=\begin{pmatrix}-1\\0\\-3\end{pmatrix}.
 $$
 
-Numerical results satisfy these conditions to the solver's tolerances, so
-near-zero entries may have either sign. See [conventions](/site/reference/) for
-residual definitions and the interpretation of other termination statuses.
+Results are returned in the original problem dimensions and units. If presolve
+completes a solve, `info.iters` can be zero; set `presolve=False` in Python or
+`presolve: false` in Rust to exercise the interior-point method.
+
+See [Conventions](/site/reference/#solutions-and-diagnostics) for residuals and
+certificate definitions, and the [Python](/site/reference/python/) and
+[Rust](/site/reference/rust/) references for interface details.

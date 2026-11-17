@@ -18,8 +18,6 @@ C/C++ build toolchain.
 python -m pip install "cpo3 @ git+https://github.com/cpo3-org/cpo3.git@main"
 ```
 
-NumPy and SciPy are installed as dependencies.
-
 This builds the Python extension from source. For an editable checkout and
 optional backend features, see [source builds](#building-from-source).
 
@@ -32,9 +30,6 @@ Requires Rust **1.91 or later**. Add cpo3 to `Cargo.toml`:
 cpo3 = { git = "https://github.com/cpo3-org/cpo3.git", branch = "main" }
 ```
 
-Use Cargo's release profile when measuring solver performance: debug builds
-disable compiler optimizations and can substantially increase solve times.
-
 Enable the `mps` feature if you need to read MPS or QPS files. Optional
 factorization backends use the `accelerate`, `cholmod`, and `pardiso` features.
 For example, to add file loading:
@@ -46,22 +41,19 @@ cpo3 = { git = "https://github.com/cpo3-org/cpo3.git", branch = "main", features
 
 ## Optional factorization backends
 
-Development builds use Faer by default. Enable the corresponding build features
-to use optional backends. For comparison, the Python release wheels include:
+Development builds use Faer by default. Optional backends require the
+corresponding build features.
 
-| Platform | Included integrations |
-| --- | --- |
-| macOS Apple Silicon and Intel | Faer, Accelerate, CHOLMOD |
-| Linux x86-64 and Windows x86-64 | Faer, CHOLMOD, PARDISO |
+<span id="check-availability"></span>
 
-CHOLMOD and PARDISO also need separately installed shared libraries. Installing
-an integration does not select it automatically; Faer remains the default.
+CHOLMOD and PARDISO require separately installed shared libraries. Backend
+selection and availability checks are documented in
+[Settings](/site/settings/#factorization-backends).
 
 ### Accelerate
 
-Accelerate uses the system framework on macOS 13 or later. No separate
-numerical library installation is needed. Select it with
-`linear_solver=cpo3.LinearSolver.ACCELERATE` and `threads=0`.
+Accelerate uses the system framework on macOS 13 or later; no external
+numerical library is required.
 
 ### CHOLMOD
 
@@ -89,20 +81,6 @@ Run cpo3 in that environment. If discovery fails, set `CPO3_MKL_RT` to the full
 path of the MKL runtime library before starting Python. Its dependencies must
 also be discoverable by the system loader.
 
-### Check availability
-
-```python
-import cpo3
-
-for solver in cpo3.LinearSolver:
-    print(solver.value, solver.is_available())
-```
-
-In Rust, use the corresponding enum method, for example
-`LinearSolver::Cholmod.is_available()`. See
-[backend selection and threading](/site/settings/#factorization-backends) for the
-runtime controls. Equality-only problems always use Faer.
-
 ## Building from source
 
 Source builds use Faer by default. You need Rust 1.91 or later, a platform C/C++
@@ -117,9 +95,7 @@ cd cpo3
 uv sync
 ```
 
-Run scripts from the checkout with `uv run python example.py`. This uses the
-environment containing the locally built extension. Python source builds also
-include MPS/QPS file loading.
+Python source builds include MPS/QPS file loading.
 
 To enable an optional backend, pass its build feature. For example, on macOS:
 
@@ -142,7 +118,3 @@ The Git dependency above tracks `main`. To use a local solver checkout instead:
 [dependencies]
 cpo3 = { path = "../cpo3" }
 ```
-
-Add `features = ["mps"]` or the desired backend features to the same dependency
-entry as needed. For reproducible Git dependencies, replace `branch` with a
-`rev` field that pins a specific Git revision.

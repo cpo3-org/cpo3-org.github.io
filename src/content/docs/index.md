@@ -5,7 +5,7 @@ tableOfContents: false
 next: false
 ---
 
-<p class="home-summary">An interior-point solver for linear and quadratic optimization.</p>
+<p class="home-summary">A primal–dual interior-point solver for convex quadratic cone programs.</p>
 
 This documentation follows development on the **`main` branch**.
 
@@ -16,7 +16,7 @@ This documentation follows development on the **`main` branch**.
 
 ## Problem formulation
 
-cpo3 solves convex optimization problems of the form
+cpo3 solves
 
 $$
 \begin{aligned}
@@ -25,27 +25,31 @@ $$
 \end{aligned}
 $$
 
-The matrix $P$ is symmetric positive semidefinite. The cone $\mathcal K$ is a
-product of zero and nonnegative cones, representing equality and inequality
-constraints. Setting $P=0$ gives a linear program.
+The current implementation supports $P\succeq0$ and
+$\mathcal K=\{0\}^{z}\times\mathbb R_+^{m-z}$, where $z$ is the number of
+equality rows and $m$ is the total number of constraint rows.
+Linear programs use $P=0$. Both interfaces accept sparse problem data and return
+primal–dual solutions or infeasibility certificates.
 
 ## Method and performance
 
-The solver uses an infeasible-start, primal–dual interior-point method with
-predictor–corrector steps based on a novel strongly monotone central path equation.
-It handles quadratic objectives directly and uses a homogeneous embedding to
-detect primal and dual infeasibility.
+cpo3 uses an infeasible-start predictor–corrector method based on strongly
+monotone central path equations for a homogeneous embedding. It handles quadratic
+objectives directly and uses the embedding to detect primal and dual infeasibility.
+Josephy–Newton steps linearize conic complementarity while retaining the quadratic
+perspective term; predictor and corrector share a shifted quasi-definite
+factorization. The [paper](https://arxiv.org/abs/2611.18403) develops the method;
+[Solver details](/site/solver-details/) documents initialization, scaling, linear
+solves, and termination.
 
 In the paper's [benchmark results](https://arxiv.org/pdf/2611.18403#page=41),
 cpo3 returned verified solutions for **640 of 675 problems**, the highest count
 among all tested open-source and commercial solvers. It also recorded the lowest
 penalized shifted geometric mean runtime among the tested open-source solvers.
 
-The [getting-started guide](/site/getting-started/) works through a quadratic
-program with equalities, inequalities, and variable bounds in Python and Rust,
-including how to interpret slacks and dual multipliers. The
-[conventions reference](/site/reference/) defines data requirements, optimality
-conditions, and infeasibility certificates.
+The [API example](/site/getting-started/) shows sparse problem assembly in Python
+and Rust. [Conventions](/site/reference/) specifies matrix storage, cone ordering,
+dual signs, residual definitions, and certificate semantics.
 
 ## Citation
 

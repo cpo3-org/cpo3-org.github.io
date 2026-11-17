@@ -1,19 +1,13 @@
 ---
 title: Getting started
-description: Model and solve a quadratic program with mixed constraints, then interpret its primal and dual solution.
+description: Sparse problem assembly and solution access in Python and Rust.
 tableOfContents:
   maxHeadingLevel: 2
 ---
 
 import { Tabs, TabItem } from '@astrojs/starlight/components';
 
-This walkthrough maps equalities, inequalities, and variable bounds to cpo3's
-problem data, solves the same quadratic program in Python and Rust, and interprets
-its slacks and dual multipliers. See [Installation](/site/installation/) for setup.
-
-## Problem
-
-Consider the quadratic program
+## Problem data
 
 $$
 \begin{aligned}
@@ -27,34 +21,19 @@ $$
 \end{aligned}
 $$
 
-Its solution is $x=(0.5,0.5,0)$, with objective value $0.25$.
-The general inequality and the lower bound on $x_3$ are active; the other
-variable bounds have positive slack.
+For this row ordering, use
+$\mathcal K=\{0\}\times\mathbb R_+^5$: one equality row, followed by the
+general inequality and four bound rows. Cone descriptors partition consecutive
+rows of `A` and `b`; `y` and `s` use the same ordering. Bounds are explicit
+constraint rows, and all right-hand sides must be finite.
 
-## Encode the constraints
+Supply the full symmetric `P`, including both triangles. Python accepts SciPy
+sparse matrices or arrays; Rust uses `CscMatrix`. For an LP, pass `P=None` in
+Python or `None` to `Problem::new` in Rust. See [problem data](/site/reference/#problem-data)
+for the complete input contract.
 
-cpo3 uses $Ax+s=b$. A zero-cone row fixes its slack to zero and therefore
-represents an equality. A nonnegative-cone row has $s\geq0$ and represents
-an inequality of the form $Ax\leq b$.
-
-Variables have no implicit bounds. Write a lower bound $x_j\geq\ell$ as
-$-x_j\leq-\ell$, and an upper bound $x_j\leq u$ directly as a row.
-
-The rows below use **zero-based indices**, matching the code:
-
-| Row | Constraint | Slack | Cone |
-| --- | --- | --- | --- |
-| 0 | $x_1+x_2+x_3=1$ | $0$ | Zero |
-| 1 | $x_1+2x_2\leq1.5$ | $1.5-x_1-2x_2$ | Nonnegative |
-| 2 | $x_1\geq0$ | $x_1$ | Nonnegative |
-| 3 | $x_2\geq0$ | $x_2$ | Nonnegative |
-| 4 | $x_3\geq0$ | $x_3$ | Nonnegative |
-| 5 | $x_1\leq0.75$ | $0.75-x_1$ | Nonnegative |
-
-Use one zero-cone block of dimension 1, followed by one nonnegative-cone block
-of dimension 5. Cone blocks apply to consecutive rows: their order matters,
-and their dimensions sum to the six rows of `A`.
-
+<span id="encode-the-constraints"></span>
+<span id="problem"></span>
 <span id="solve"></span>
 
 ## Solve the problem
@@ -127,15 +106,9 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
 </TabItem>
 </Tabs>
 
-For a linear program, use `P=None` in Python or `None` for the first argument to
-`Problem::new` in Rust. Solver controls are documented in [Settings](/site/settings/).
-
 ## Interpret the result
 
-Check for `SOLVED` in Python or `Solved` in Rust before interpreting the vectors
-as an optimal solution. Other statuses can indicate an infeasibility certificate
-or termination at a time or iteration limit. For this problem, the primal variables
-`x`, dual multipliers `y`, and slacks `s` are approximately
+For `SOLVED` (Python) or `Solved` (Rust), the expected result is
 
 $$
 x=\begin{pmatrix}0.5\\0.5\\0\end{pmatrix},\qquad
@@ -143,25 +116,16 @@ y=\begin{pmatrix}-2\\1\\0\\0\\1\\0\end{pmatrix},\qquad
 s=\begin{pmatrix}0\\0\\0.5\\0.5\\0\\0.25\end{pmatrix}.
 $$
 
-The entries of `y` and `s` follow the row order of `A`. The equality multiplier
-is $-2$; equality multipliers can have either sign. The inequality multipliers
-are nonnegative. The general inequality and the lower bound on $x_3$ each
-have multiplier 1 and zero slack. The remaining bounds have zero multipliers
-and positive slacks. Locally, relaxing the general inequality's right-hand side
-by a small amount reduces the optimal objective at a rate of 1 per unit.
+with `pobj` approximately `0.25`. The returned vectors are in the original
+problem coordinates, after undoing equilibration and presolve reductions.
+The dual sign convention is $Px+c+A^\mathsf{T}y=0$, with
+$y\in\mathcal K^*$.
 
-These values satisfy primal feasibility $Ax+s=b$, stationarity
-$Px+c+A^\mathsf{T}y=0$, and complementarity $s_i y_i=0$. In particular,
+[Conventions](/site/reference/#solutions-and-diagnostics) defines diagnostic
+fields and [termination statuses](/site/reference/#termination-statuses).
 
-$$
-Px+c=\begin{pmatrix}1\\0\\3\end{pmatrix},\qquad
-A^\mathsf{T}y=\begin{pmatrix}-1\\0\\-3\end{pmatrix}.
-$$
-
-Results are returned in the original problem dimensions and units. If presolve
-completes a solve, `info.iters` can be zero; set `presolve=False` in Python or
-`presolve: false` in Rust to exercise the interior-point method.
-
-See [Conventions](/site/reference/#solutions-and-diagnostics) for residuals and
-certificate definitions, and the [Python](/site/reference/python/) and
-[Rust](/site/reference/rust/) references for interface details.
+Presolve can solve this small instance without an interior-point iteration.
+Set `presolve=False` in Python or `presolve: false` in Rust to exercise the
+interior-point path. [Settings](/site/settings/) documents solver controls;
+[Solver details](/site/solver-details/) describes initialization, factorization,
+and stopping behavior.

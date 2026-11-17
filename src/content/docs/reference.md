@@ -5,10 +5,6 @@ tableOfContents:
   maxHeadingLevel: 2
 ---
 
-The [Python API](/site/reference/python/) and [Rust API](/site/reference/rust/) use the same
-mathematical conventions. This page defines the problem data and the meaning
-of solver results; see [Settings](/site/settings/) for controls and tolerances.
-
 ## Problem data
 
 Both APIs represent the problem
@@ -51,11 +47,10 @@ Encode bounds as constraint rows; do not use infinite right-hand sides.
 
 ## Solutions and diagnostics
 
-Results use the original problem dimensions and units. In Python, diagnostics
-are properties of `solution.info`. In Rust, use `solution.info()`; durations
-are `Duration` values rather than seconds, and linear-algebra counters are
-nested under `linear_algebra`. Optional flags use `None` in Python and
-`Option<bool>` in Rust.
+Results use the original problem dimensions and units. Field access and
+language-specific types are documented in the
+[Python](/site/reference/python/#accessing-results) and
+[Rust](/site/reference/rust/#accessing-results) references.
 
 For an optimal solution, the conventions are
 
@@ -64,8 +59,7 @@ Ax+s=b,\qquad Px+c+A^\mathsf{T}y=0,\qquad
 s\in\mathcal K,\quad y\in\mathcal K^*,\quad s^\mathsf{T}y=0.
 $$
 
-`x` has length $n$; `y` and `s` have length $m$. Equality-row multipliers are
-unrestricted, and inequality-row multipliers are nonnegative.
+`x` has length $n$; `y` and `s` have length $m$.
 For infeasibility statuses, the relevant vectors describe a certificate instead
 of an optimal point; see [termination statuses](#termination-statuses).
 
@@ -78,7 +72,7 @@ of an optimal point; see [termination statuses](#termination-statuses).
 | `pres` | Primal residual infinity norm $\lVert Ax+s-b\rVert_\infty$. |
 | `dres` | Dual residual infinity norm $\lVert Px+A^\mathsf{T}y+c\rVert_\infty$. |
 | `comp` | Absolute complementarity $\lvert s^\mathsf{T}y\rvert$; distinct from the objective gap away from feasibility. |
-| `solve_time` | Total elapsed solve time in seconds, including presolve and recovery. |
+| `solve_time` | Total elapsed solve time, including presolve and recovery. |
 | `iters` | Solver iteration count; zero is possible when presolve completes the solve. Not an LSMR iteration count. |
 | `linear_solver` | Backend recorded for the solve. |
 
@@ -95,7 +89,7 @@ for the stopping tests.
 | `cvxopt_init_used` | True for a CVXOPT-style start; false for a canonical start, including fallback. Unset if a warm start was accepted or no interior-point iterate was formed. |
 | `presolve_rows_removed` | Number of constraint rows removed. |
 | `presolve_columns_removed` | Number of variables removed. |
-| `presolve_time` | Presolve time in seconds, excluding the core solve and postsolve. |
+| `presolve_time` | Presolve time, excluding the core solve and postsolve. |
 
 ### Linear-algebra counters
 
@@ -108,8 +102,7 @@ for the stopping tests.
 | `lsmr_iterations` | Iterations of the equality-only LSMR fallback. |
 
 Solve counters are per right-hand side, including when multiple right-hand
-sides are processed together. A zero `refinement_solves` count means no
-correction solve was attempted during that solve.
+sides are processed together.
 
 ## Termination statuses
 
@@ -121,6 +114,5 @@ correction solve was attempted during that solve.
 | `MAX_ITERATIONS` | `MaxIterations` | The applicable iteration budget was exhausted without establishing optimality or infeasibility. |
 | `TIME_LIMIT` | `TimeLimit` | The elapsed-time limit was reached without establishing optimality or infeasibility. |
 
-Primal certificates satisfy $A^\mathsf{T}y\approx0$, $y\in\mathcal K^*$, and
-$b^\mathsf{T}y<0$. Dual certificates satisfy $Px\approx0$, $Ax+s\approx0$,
-$s\in\mathcal K$, and $c^\mathsf{T}x<0$. Unused result vectors may contain `NaN`.
+Certificate conditions and their interpretation are given under
+[infeasibility certificates](/site/solver-details/#infeasibility-certificates).

@@ -5,7 +5,7 @@ tableOfContents:
   maxHeadingLevel: 2
 ---
 
-This page covers usage and ownership. For exhaustive signatures, see the
+For exhaustive signatures, see the
 [generated Rust API documentation](https://docs.rs/cpo3/0.0.1/cpo3/).
 The [shared conventions](/site/reference/) define the mathematical formulation and
 result meanings; [Settings](/site/settings/#rust-settings) describes configuration.
@@ -37,8 +37,7 @@ Use the fallible constructors for external data:
 | `CscMatrix::zeros` | Row and column counts for an empty sparse matrix. |
 
 Each returns `Result<CscMatrix, MatrixError>`. Indices are zero-based `usize`
-values. For CSC input, the pointer vector has one entry per column plus an
-end pointer; the index and value vectors have one entry per stored element.
+values.
 `from_parts` is a lower-level constructor that can panic on invalid structure;
 prefer `new` when handling data that may be invalid.
 
@@ -50,12 +49,9 @@ Its stored `p()` contains only the upper triangle after construction.
 
 `solve(&problem, &settings)` borrows both inputs for the duration of the call
 and returns `Result<Solution, SolveError>`. The returned `Solution` owns its
-vectors and does not borrow the problem. The inputs remain available for
-subsequent solves.
+vectors and does not borrow the problem.
 
-Numerical defaults are shared with Python; `time_limit` uses
-`Option<Duration>` and `eq_lsmr_iters` uses `Option<usize>`.
-See [Rust settings](/site/settings/#rust-settings) for details.
+See [Rust settings](/site/settings/#rust-settings) for defaults and field types.
 
 ### Warm starts
 
@@ -79,32 +75,30 @@ if solution.status() == SolverStatus::Solved {
 
 `solve_from` borrows the warm start. Supplying `None` is equivalent to a cold
 solve. Values must be finite and dimensions must match the problem being solved.
-The solver screens interior candidates and may reject the supplied start;
-equality-only problems skip this initialization.
+Acceptance is reported in `solution.info().warm_start_used`; see
+[warm-start screening](/site/solver-details/#initialization-and-warm-starts).
 
 ## Accessing results
 
-Check `solution.status()` before interpreting the vectors. The variants
-`Solved`, `PrimalInfeasible`, `DualInfeasible`, `MaxIterations`, and `TimeLimit`
-have the [shared termination meanings](/site/reference/#termination-statuses).
+`solution.status()` returns a `SolverStatus`; see
+[termination statuses](/site/reference/#termination-statuses).
 
-`solution.x()`, `y()`, and `s()` return borrowed slices, so repeated access does
-not copy the vectors. Use `.to_vec()` when an owned copy is needed.
+`solution.x()`, `y()`, and `s()` return borrowed slices without copying.
 `solution.info()` borrows a `SolutionInfo` with public fields.
 
 | Access | Rust representation |
 | --- | --- |
 | `info.pobj`, `dobj`, `pres`, `dres`, `comp` | Objective and residual values as `f64`. |
 | `info.iters` | Solver iteration count as `usize`. |
-| `info.solve_time`, `presolve_time` | `Duration`; use `.as_secs_f64()` for seconds. |
+| `info.solve_time`, `presolve_time` | `Duration`. |
 | `info.warm_start_used`, `cvxopt_init_used` | `Option<bool>`. |
 | `info.presolve_rows_removed`, `presolve_columns_removed` | Counts as `usize`. |
 | `info.linear_solver` | A `LinearSolver` enum value. |
 | `info.linear_algebra` | Factorization, primary solve, refinement, and LSMR counters. |
 
-For example, use `solution.info().linear_algebra.refinement_solves`, rather
-than the flat `solution.info.refinement_solves` property used in Python.
-The [diagnostic definitions](/site/reference/#solutions-and-diagnostics) apply to both APIs.
+Linear-algebra counters are nested, for example
+`solution.info().linear_algebra.refinement_solves`.
+[Conventions](/site/reference/#solutions-and-diagnostics) defines the fields.
 
 ## Errors
 
@@ -119,15 +113,9 @@ Ordinary termination, including limits and infeasibility certificates, returns
 | `SolveError::Unimplemented` | A requested cone is unsupported. |
 | `SolveError::Numerical` | A numerical solve failed, including an unavailable backend. |
 
-`SolveError` and `SolverStatus` are non-exhaustive enums, so downstream `match`
-expressions need a fallback arm.
+`SolveError` and `SolverStatus` are non-exhaustive enums.
 
 ## Features and problem files
-
-The default build uses Faer. The optional `accelerate`, `cholmod`, and `pardiso`
-features enable other backends; see [backend requirements](/site/settings/#factorization-backends).
-Check availability, for example with `LinearSolver::Cholmod.is_available()`,
-before selecting a backend that depends on an external runtime.
 
 Enable the `mps` feature to expose `cpo3::mps`. Use
 `cpo3::mps::read("problem.mps")` to read MPS or QPS files. It returns

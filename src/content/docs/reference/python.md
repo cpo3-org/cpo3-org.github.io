@@ -51,9 +51,8 @@ with them raises `NotImplementedError`.
 solution = cpo3.solve(problem, settings=None, warm_start=None)
 ```
 
-Omitting `settings` uses `cpo3.Settings()`; see [Settings](/site/settings/) for defaults. The solve is synchronous and returns
-a `Solution` for ordinary termination, including iteration and time limits.
-Always inspect `solution.status` before using the returned vectors.
+Omitting `settings` uses `cpo3.Settings()`; see [Settings](/site/settings/) for
+defaults. The solve is synchronous.
 
 For a related problem with compatible dimensions, supply a previous solution:
 
@@ -66,16 +65,15 @@ solution = cpo3.solve(
 ```
 
 The tuple is ordered **`(x, y, s)`**, with lengths $n$, $m$, and $m$, in the
-original problem units. Values must be finite. cpo3 constructs and screens
-interior candidates from this point; supplying it does not guarantee that it
-will be used. Inspect `solution.info.warm_start_used` to see the outcome.
-Equality-only problems skip warm-start initialization.
+original problem units. Values must be finite. Acceptance is reported in
+`solution.info.warm_start_used`; see
+[warm-start screening](/site/solver-details/#initialization-and-warm-starts).
 
 ## Accessing results
 
 `Solution` exposes `status`, `x`, `y`, `s`, and `info` as read-only properties.
 `x`, `y`, and `s` are NumPy arrays of lengths $n$, $m$, and $m$, respectively.
-Each vector access returns a copy; retain it locally when reusing it.
+Each vector access returns a copy.
 
 ```python
 if solution.status is cpo3.SolverStatus.SOLVED:
@@ -85,16 +83,15 @@ if solution.status is cpo3.SolverStatus.SOLVED:
     print(solution.info.solve_time)  # seconds
 ```
 
-All diagnostics, including `primary_solves`, `refinement_solves`, and
-`factorizations`, are available directly on `solution.info`. Optional
-initialization flags are `bool` or `None`. See the shared
-[diagnostic definitions](/site/reference/#solutions-and-diagnostics) and
-[status table](/site/reference/#termination-statuses) before interpreting the values.
+Diagnostic fields are available directly on `solution.info`, including
+`solution.info.refinement_solves`. Durations are in seconds; optional
+initialization flags are `bool` or `None`. [Conventions](/site/reference/#solutions-and-diagnostics)
+defines the fields and [termination statuses](/site/reference/#termination-statuses).
 
 ## Errors
 
-An iteration or time limit returns a `Solution` with the corresponding status.
-Exceptional failures raise an exception:
+Ordinary termination, including limits and infeasibility certificates, returns
+a `Solution`. Exceptional failures raise an exception:
 
 | Exception | Meaning |
 | --- | --- |

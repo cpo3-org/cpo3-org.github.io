@@ -1,15 +1,15 @@
 # cpo3 documentation
 
-The [cpo3 project website](https://cpo3-org.github.io/site/), built with
+The [cpo3 project website](https://cpo3-org.github.io/), built with
 [Astro](https://astro.build/) and [Starlight](https://starlight.astro.build/).
 
 ## Documentation versions
 
 | URL | Content source |
 | --- | --- |
-| `/site/` | Latest release, currently `versions/0.0.1/docs/` |
-| `/site/0.0.1/` | The same release at a permanent versioned URL |
-| `/site/dev/` | Development docs in `src/content/docs/`, tracking solver `main` |
+| `/` | Latest release, currently `versions/0.0.1/docs/` |
+| `/v0.0.1/` | The same release at a permanent versioned URL |
+| `/dev/` | Development docs in `src/content/docs/`, tracking solver `main` |
 
 `docs.config.mjs` lists the releases and selects the latest. Each version is
 built independently, with its own navigation, assets, and search index. The
@@ -26,7 +26,7 @@ npm run build
 npm run preview
 ```
 
-Open the URL printed in the terminal, normally `http://127.0.0.1:4321/site/`.
+Open the URL printed in the terminal, normally `http://127.0.0.1:4321/`.
 Rebuild after editing to refresh this preview. The combined static site is
 written to `dist/`.
 
@@ -34,7 +34,7 @@ For live editing of one version:
 
 ```sh
 npm run dev                           # Latest release
-DOCS_VERSION=dev npm run dev           # Development docs at /site/dev/
+DOCS_VERSION=dev npm run dev           # Development docs at /dev/
 DOCS_VERSION=0.0.1 npm run dev         # Archived release
 ```
 
@@ -48,7 +48,7 @@ Edit development pages in `src/content/docs/` and their navigation in
 corresponding `versions/<version>/` directory. Each snapshot contains its own
 pages and sidebar, so later development changes do not alter older releases.
 
-Write internal links with the `/site/` base path. The build resolves Markdown,
+Write internal links from the root, for example `/settings/`. The build resolves Markdown,
 HTML, and MDX links against the selected version. Shared theme and components
 apply to all versions. No API generation is configured.
 

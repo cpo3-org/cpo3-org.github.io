@@ -22,9 +22,10 @@ for (const version of versions) {
 // Only replace the preview/deployment output after every version builds successfully.
 rmSync('dist', { recursive: true, force: true });
 for (const version of versions) {
-  cpSync(`${staging}/${version.id}`, version.id === 'latest' ? 'dist' : `dist/${version.id}`, {
+  cpSync(`${staging}/${version.id}`, version.id === 'latest' ? 'dist' : `dist${version.base}`, {
     recursive: true,
   });
 }
 rmSync(staging, { recursive: true });
+
 console.log('\nAll documentation versions are in dist/.');

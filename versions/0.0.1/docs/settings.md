@@ -13,7 +13,7 @@ settings = cpo3.Settings(verbose=True, time_limit=30.0, threads=1)
 solution = cpo3.solve(problem, settings=settings)
 ```
 
-See [Solver details](/site/solver-details/) for how these controls enter the
+See [Solver details](/solver-details/) for how these controls enter the
 algorithm and linear solves.
 
 ## Run controls
@@ -36,7 +36,7 @@ Iteration limits and
 | `tol_gap_abs` | `1e-8` | Positive absolute duality-gap tolerance. |
 | `tol_gap_rel` | `1e-8` | Positive relative duality-gap tolerance. |
 
-The [stopping criteria](/site/solver-details/#stopping-criteria) define the residual
+The [stopping criteria](/solver-details/#stopping-criteria) define the residual
 scales and gap tests. [Certificate tolerances](#infeasibility-detection) are separate.
 
 ## Factorization backends
@@ -62,7 +62,7 @@ Rust exposes the same check, for example `LinearSolver::Cholmod.is_available()`.
 | `CHOLMOD` | `threads` caps OpenMP work; simplicial LDL factorization is sequential. |
 | `PARDISO` | Uses MKL's thread-local limit. |
 
-The [installation guide](/site/installation/#optional-factorization-backends)
+The [installation guide](/installation/#optional-factorization-backends)
 contains platform and library setup instructions. Selecting an unavailable
 backend does not silently substitute another. Equality-only problems use Faer
 regardless of this selection.
@@ -105,13 +105,13 @@ booleans and enum variants such as `LinearSolver::Faer`. `time_limit` is an
 | `refine_iters` | `30` | Maximum correction solves per KKT right-hand side. Zero keeps the initial solve without corrections. |
 | `refine_tol` | `1e-7` | Positive componentwise backward-error target. Refinement may stop earlier if further corrections are unlikely to help. |
 
-See [regularization and refinement](/site/solver-details/#regularization-and-refinement)
+See [regularization and refinement](/solver-details/#regularization-and-refinement)
 for the target system and adaptive factorization floor.
 
 ### Equality-only problems
 
 These controls replace `max_iters`, `refine_iters`, `refine_tol`, and
-`refine_init_reg` on the [equality-only path](/site/solver-details/#equality-only-problems).
+`refine_init_reg` on the [equality-only path](/solver-details/#equality-only-problems).
 
 | Setting | Default | Meaning |
 | --- | --- | --- |

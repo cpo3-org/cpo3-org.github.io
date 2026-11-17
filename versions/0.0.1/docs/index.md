@@ -10,8 +10,8 @@ next: false
 This documentation covers the **cpo3 0.0.1 release**.
 
 <nav class="home-links" aria-label="Documentation links">
-  <a href="/site/installation/">Installation</a>
-  <a href="/site/getting-started/">Getting started</a>
+  <a href="/installation/">Installation</a>
+  <a href="/getting-started/">Getting started</a>
 </nav>
 
 ## Problem formulation
@@ -39,7 +39,7 @@ objectives directly and uses the embedding to detect primal and dual infeasibili
 Josephy–Newton steps linearize conic complementarity while retaining the quadratic
 perspective term; predictor and corrector share a shifted quasi-definite
 factorization. The [paper](https://arxiv.org/abs/2611.18403) develops the method;
-[Solver details](/site/solver-details/) documents initialization, scaling, linear
+[Solver details](/solver-details/) documents initialization, scaling, linear
 solves, and termination.
 
 In the paper's [benchmark results](https://arxiv.org/pdf/2611.18403#page=41),
@@ -47,8 +47,8 @@ cpo3 returned verified solutions for **640 of 675 problems**, the highest count
 among all tested open-source and commercial solvers. It also recorded the lowest
 penalized shifted geometric mean runtime among the tested open-source solvers.
 
-The [API example](/site/getting-started/) shows sparse problem assembly in Python
-and Rust. [Conventions](/site/reference/) specifies matrix storage, cone ordering,
+The [API example](/getting-started/) shows sparse problem assembly in Python
+and Rust. [Conventions](/reference/) specifies matrix storage, cone ordering,
 dual signs, residual definitions, and certificate semantics.
 
 ## Citation

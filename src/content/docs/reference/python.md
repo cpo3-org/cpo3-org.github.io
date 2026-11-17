@@ -6,8 +6,8 @@ tableOfContents:
 ---
 
 The Python interface accepts SciPy sparse matrices and NumPy-compatible vectors.
-See [Conventions](/site/reference/) for the formulation and result meanings,
-[Settings](/site/settings/) for solver options, and [Getting started](/site/getting-started/)
+See [Conventions](/reference/) for the formulation and result meanings,
+[Settings](/settings/) for solver options, and [Getting started](/getting-started/)
 for a complete example.
 
 ## Constructing a problem
@@ -51,7 +51,7 @@ with them raises `NotImplementedError`.
 solution = cpo3.solve(problem, settings=None, warm_start=None)
 ```
 
-Omitting `settings` uses `cpo3.Settings()`; see [Settings](/site/settings/) for
+Omitting `settings` uses `cpo3.Settings()`; see [Settings](/settings/) for
 defaults. The solve is synchronous.
 
 For a related problem with compatible dimensions, supply a previous solution:
@@ -67,7 +67,7 @@ solution = cpo3.solve(
 The tuple is ordered **`(x, y, s)`**, with lengths $n$, $m$, and $m$, in the
 original problem units. Values must be finite. Acceptance is reported in
 `solution.info.warm_start_used`; see
-[warm-start screening](/site/solver-details/#initialization-and-warm-starts).
+[warm-start screening](/solver-details/#initialization-and-warm-starts).
 
 ## Accessing results
 
@@ -85,8 +85,8 @@ if solution.status is cpo3.SolverStatus.SOLVED:
 
 Diagnostic fields are available directly on `solution.info`, including
 `solution.info.refinement_solves`. Durations are in seconds; optional
-initialization flags are `bool` or `None`. [Conventions](/site/reference/#solutions-and-diagnostics)
-defines the fields and [termination statuses](/site/reference/#termination-statuses).
+initialization flags are `bool` or `None`. [Conventions](/reference/#solutions-and-diagnostics)
+defines the fields and [termination statuses](/reference/#termination-statuses).
 
 ## Errors
 

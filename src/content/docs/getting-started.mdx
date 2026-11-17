@@ -29,7 +29,7 @@ constraint rows, and all right-hand sides must be finite.
 
 Supply the full symmetric `P`, including both triangles. Python accepts SciPy
 sparse matrices or arrays; Rust uses `CscMatrix`. For an LP, pass `P=None` in
-Python or `None` to `Problem::new` in Rust. See [problem data](/site/reference/#problem-data)
+Python or `None` to `Problem::new` in Rust. See [problem data](/reference/#problem-data)
 for the complete input contract.
 
 <span id="encode-the-constraints"></span>
@@ -121,11 +121,11 @@ problem coordinates, after undoing equilibration and presolve reductions.
 The dual sign convention is $Px+c+A^\mathsf{T}y=0$, with
 $y\in\mathcal K^*$.
 
-[Conventions](/site/reference/#solutions-and-diagnostics) defines diagnostic
-fields and [termination statuses](/site/reference/#termination-statuses).
+[Conventions](/reference/#solutions-and-diagnostics) defines diagnostic
+fields and [termination statuses](/reference/#termination-statuses).
 
 Presolve can solve this small instance without an interior-point iteration.
 Set `presolve=False` in Python or `presolve: false` in Rust to exercise the
-interior-point path. [Settings](/site/settings/) documents solver controls;
-[Solver details](/site/solver-details/) describes initialization, factorization,
+interior-point path. [Settings](/settings/) documents solver controls;
+[Solver details](/solver-details/) describes initialization, factorization,
 and stopping behavior.

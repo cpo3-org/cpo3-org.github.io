@@ -53,7 +53,7 @@ The Python release wheels include these integrations:
 
 CHOLMOD and PARDISO require separately installed shared libraries. Backend
 selection and availability checks are documented in
-[Settings](/site/settings/#factorization-backends).
+[Settings](/settings/#factorization-backends).
 
 ### Accelerate
 

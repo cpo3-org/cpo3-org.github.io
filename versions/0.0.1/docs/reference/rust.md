@@ -7,8 +7,8 @@ tableOfContents:
 
 For exhaustive signatures, see the
 [generated Rust API documentation](https://docs.rs/cpo3/0.0.1/cpo3/).
-The [shared conventions](/site/reference/) define the mathematical formulation and
-result meanings; [Settings](/site/settings/#rust-settings) describes configuration.
+The [shared conventions](/reference/) define the mathematical formulation and
+result meanings; [Settings](/settings/#rust-settings) describes configuration.
 
 ## Constructing a problem
 
@@ -17,7 +17,7 @@ and returns `Result<Problem, ProblemError>`. Use `None` for the quadratic
 matrix of a linear program. When present, `p` must be the full symmetric matrix,
 not just one triangle; positive semidefiniteness is a modeling requirement.
 
-See the [worked example](/site/getting-started/#solve-the-problem) for a complete
+See the [worked example](/getting-started/#solve-the-problem) for a complete
 problem construction and solve.
 
 Use `Cone::Zero(k)` for equality rows and `Cone::Nonnegative(k)` for inequality
@@ -51,7 +51,7 @@ Its stored `p()` contains only the upper triangle after construction.
 and returns `Result<Solution, SolveError>`. The returned `Solution` owns its
 vectors and does not borrow the problem.
 
-See [Rust settings](/site/settings/#rust-settings) for defaults and field types.
+See [Rust settings](/settings/#rust-settings) for defaults and field types.
 
 ### Warm starts
 
@@ -76,12 +76,12 @@ if solution.status() == SolverStatus::Solved {
 `solve_from` borrows the warm start. Supplying `None` is equivalent to a cold
 solve. Values must be finite and dimensions must match the problem being solved.
 Acceptance is reported in `solution.info().warm_start_used`; see
-[warm-start screening](/site/solver-details/#initialization-and-warm-starts).
+[warm-start screening](/solver-details/#initialization-and-warm-starts).
 
 ## Accessing results
 
 `solution.status()` returns a `SolverStatus`; see
-[termination statuses](/site/reference/#termination-statuses).
+[termination statuses](/reference/#termination-statuses).
 
 `solution.x()`, `y()`, and `s()` return borrowed slices without copying.
 `solution.info()` borrows a `SolutionInfo` with public fields.
@@ -98,7 +98,7 @@ Acceptance is reported in `solution.info().warm_start_used`; see
 
 Linear-algebra counters are nested, for example
 `solution.info().linear_algebra.refinement_solves`.
-[Conventions](/site/reference/#solutions-and-diagnostics) defines the fields.
+[Conventions](/reference/#solutions-and-diagnostics) defines the fields.
 
 ## Errors
 

@@ -1,7 +1,7 @@
 /** Resolve documentation links against this build's base, including MDX links. */
 export default function versionLinks({ base }) {
-  const resolve = (url) => typeof url === 'string' && url.startsWith('/site/')
-    ? `${base}/${url.slice('/site/'.length)}` : url;
+  const resolve = (url) => typeof url === 'string' && url.startsWith('/') && !url.startsWith('//')
+    ? `${base}/${url.slice(1)}` : url;
 
   return (tree) => {
     function visit(node) {
@@ -9,7 +9,7 @@ export default function versionLinks({ base }) {
         node.url = resolve(node.url);
       }
       if (node.type === 'html') {
-        node.value = node.value.replace(/\b(href|src)=(['"])(\/site\/.*?)\2/g,
+        node.value = node.value.replace(/\b(href|src)=(['"])(\/.*?)\2/g,
           (_, attr, quote, url) => `${attr}=${quote}${resolve(url)}${quote}`);
       }
       for (const attr of node.attributes || []) {

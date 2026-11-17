@@ -28,20 +28,36 @@ test('missing pages fall back to Overview; Overview remains at the version root'
 
 test('internal Markdown, HTML, and MDX links follow the build version', () => {
   const tree = { children: [
-    { type: 'link', url: '/site/settings/#termination-tolerances' },
-    { type: 'definition', url: '/site/reference/' },
-    { type: 'html', value: '<a href="/site/installation/">Install</a>' },
-    { type: 'mdxJsxFlowElement', attributes: [{ name: 'href', value: '/site/getting-started/' }] },
+    { type: 'link', url: '/settings/#termination-tolerances' },
+    { type: 'definition', url: '/reference/' },
+    { type: 'html', value: '<a href="/installation/">Install</a>' },
+    { type: 'mdxJsxFlowElement', attributes: [{ name: 'href', value: '/getting-started/' }] },
     { type: 'link', url: 'https://github.com/cpo3-org/cpo3' },
     { type: 'link', url: '#local-anchor' },
-    { type: 'code', value: 'href="/site/example/"' },
+    { type: 'code', value: 'href="/example/"' },
   ] };
-  versionLinks({ base: '/site/0.0.1' })(tree);
-  assert.equal(tree.children[0].url, '/site/0.0.1/settings/#termination-tolerances');
-  assert.equal(tree.children[1].url, '/site/0.0.1/reference/');
-  assert.equal(tree.children[2].value, '<a href="/site/0.0.1/installation/">Install</a>');
-  assert.equal(tree.children[3].attributes[0].value, '/site/0.0.1/getting-started/');
+  versionLinks({ base: '/v0.0.1' })(tree);
+  assert.equal(tree.children[0].url, '/v0.0.1/settings/#termination-tolerances');
+  assert.equal(tree.children[1].url, '/v0.0.1/reference/');
+  assert.equal(tree.children[2].value, '<a href="/v0.0.1/installation/">Install</a>');
+  assert.equal(tree.children[3].attributes[0].value, '/v0.0.1/getting-started/');
   assert.equal(tree.children[4].url, 'https://github.com/cpo3-org/cpo3');
   assert.equal(tree.children[5].url, '#local-anchor');
-  assert.equal(tree.children[6].value, 'href="/site/example/"');
+  assert.equal(tree.children[6].value, 'href="/example/"');
+});
+
+test('latest documentation lives at root and protocol-relative URLs stay external', () => {
+  assert.equal(versions[0].base, '');
+  assert.equal(versions.find(({ id }) => id === '0.0.1').base, '/v0.0.1');
+  const tree = { children: [
+    { type: 'link', url: '/settings/#termination-tolerances' },
+    { type: 'link', url: '//example.com/resource' },
+    { type: 'html', value: '<a href="//example.com/resource">External</a>' },
+  ] };
+  versionLinks({ base: '' })(tree);
+  assert.equal(tree.children[0].url, '/settings/#termination-tolerances');
+  versionLinks({ base: '/dev' })(tree);
+  assert.equal(tree.children[0].url, '/dev/settings/#termination-tolerances');
+  assert.equal(tree.children[1].url, '//example.com/resource');
+  assert.equal(tree.children[2].value, '<a href="//example.com/resource">External</a>');
 });

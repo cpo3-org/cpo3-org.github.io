@@ -49,8 +49,8 @@ Encode bounds as constraint rows; do not use infinite right-hand sides.
 
 Results use the original problem dimensions and units. Field access and
 language-specific types are documented in the
-[Python](/site/reference/python/#accessing-results) and
-[Rust](/site/reference/rust/#accessing-results) references.
+[Python](/reference/python/#accessing-results) and
+[Rust](/reference/rust/#accessing-results) references.
 
 For an optimal solution, the conventions are
 
@@ -78,7 +78,7 @@ of an optimal point; see [termination statuses](#termination-statuses).
 
 Objective and residual fields may be `NaN` when the result is a certificate
 rather than a point. A limit status does not imply that the residuals meet the
-requested tolerances. See [termination tolerances](/site/settings/#termination-tolerances)
+requested tolerances. See [termination tolerances](/settings/#termination-tolerances)
 for the stopping tests.
 
 ### Initialization and presolve
@@ -115,4 +115,4 @@ sides are processed together.
 | `TIME_LIMIT` | `TimeLimit` | The elapsed-time limit was reached without establishing optimality or infeasibility. |
 
 Certificate conditions and their interpretation are given under
-[infeasibility certificates](/site/solver-details/#infeasibility-certificates).
+[infeasibility certificates](/solver-details/#infeasibility-certificates).

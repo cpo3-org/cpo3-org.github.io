@@ -9,7 +9,7 @@ const isOverview = Astro.url.pathname.replace(/\/$/, '') === base;
 {currentVersion.id === 'dev' && (
   <p class="version-notice" data-pagefind-ignore>
     Development documentation · tracks <code>main</code>.
-    <a href={stable.href}>Latest release: {latestRelease}</a>
+    <a href={stable.href}>Latest release: v{latestRelease}</a>
   </p>
 )}
 {isOverview ? (

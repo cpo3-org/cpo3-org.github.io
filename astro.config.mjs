@@ -8,7 +8,7 @@ import versionLinks from './src/lib/version-links.mjs';
 
 export default defineConfig({
   site: 'https://cpo3-org.github.io',
-  base: currentVersion.base,
+  base: currentVersion.base || '/',
   outDir: process.env.DOCS_OUT_DIR || './dist',
   cacheDir: `./.astro/${currentVersion.id}`,
   redirects: {

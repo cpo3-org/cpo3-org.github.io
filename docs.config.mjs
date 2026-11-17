@@ -4,9 +4,9 @@ import { resolve } from 'node:path';
 export const latestRelease = '0.0.1';
 export const releases = ['0.0.1'];
 export const versions = [
-  { id: 'latest', label: `Latest (${latestRelease})`, base: '/site', source: `versions/${latestRelease}` },
-  ...releases.map((id) => ({ id, label: id, base: `/site/${id}`, source: `versions/${id}` })),
-  { id: 'dev', label: 'Development', base: '/site/dev', source: 'src/content' },
+  { id: 'latest', label: `Latest (v${latestRelease})`, base: '', source: `versions/${latestRelease}` },
+  ...releases.map((id) => ({ id, label: `v${id}`, base: `/v${id}`, source: `versions/${id}` })),
+  { id: 'dev', label: 'Development', base: '/dev', source: 'src/content' },
 ];
 
 const versionId = process.env.DOCS_VERSION || 'latest';

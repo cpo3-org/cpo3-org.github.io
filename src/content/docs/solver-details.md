@@ -21,7 +21,7 @@ $$
 $$
 
 Setting `presolve=False` does not disable equilibration; set
-[`ruiz_iters=0`](/site/settings/#initialization-and-equilibration) separately.
+[`ruiz_iters=0`](/settings/#initialization-and-equilibration) separately.
 
 ## Initialization and warm starts
 
@@ -41,7 +41,7 @@ normalization factor.
 
 The candidate with the smallest [local residual score](https://github.com/cpo3-org/cpo3/blob/main/src/central_path/init.rs#L100) is accepted
 if its score is at most 100. `force_warm_start=True` bypasses the score threshold;
-acceptance is recorded in [`warm_start_used`](/site/reference/#initialization-and-presolve).
+acceptance is recorded in [`warm_start_used`](/reference/#initialization-and-presolve).
 
 <span id="factorization-and-reuse"></span>
 <span id="regularization-and-refinement"></span>
@@ -53,12 +53,12 @@ The KKT sparsity pattern and symbolic analysis are reused across iterations;
 the changing diagonal requires numerical refactorization. Reuse is confined
 to one solve; there is no persistent factorization cache across API calls.
 
-With [`eliminate_bounds=True`](/site/settings/#linear-systems-and-refinement),
+With [`eliminate_bounds=True`](/settings/#linear-systems-and-refinement),
 single-nonzero nonnegative-cone rows are eliminated by a Schur complement into
 the primal diagonal, independently of presolve.
 
 The central-path shift is part of the step equations. Separately,
-[`refine_init_reg`](/site/settings/#linear-systems-and-refinement) initializes
+[`refine_init_reg`](/settings/#linear-systems-and-refinement) initializes
 an adaptive diagonal-magnitude floor in the factorized matrix. Numerical
 failures can trigger a larger floor and refactorization; refinement diagnostics
 also guide subsequent adjustments.
@@ -67,7 +67,7 @@ Iterative refinement evaluates residuals against the shifted KKT system,
 including recovered components from eliminated bound rows. It corrects
 additional factorization perturbations while retaining the central-path shift.
 The componentwise backward-error target
-[`refine_tol`](/site/settings/#linear-systems-and-refinement) is not guaranteed:
+[`refine_tol`](/settings/#linear-systems-and-refinement) is not guaranteed:
 refinement can return its best finite iterate without meeting it. The outer
 solve applies the stopping and certificate tests below.
 
@@ -117,7 +117,7 @@ residual-derived candidates without this gate. Presolve can return certificates
 directly, independently of the tests below.
 
 The tests use $\epsilon=10^{-15}$ and the
-[certificate tolerances](/site/settings/#infeasibility-detection).
+[certificate tolerances](/settings/#infeasibility-detection).
 
 For a primal-infeasibility candidate $y\in\mathcal K^*$, acceptance requires
 
@@ -159,4 +159,4 @@ Faer and does not use the supplied warm start.
 `eq_refine_iters` and `eq_lsmr_iters` control this path instead of the
 interior-point iteration and refinement limits. Optimality is checked against
 the same user tolerances. Work on this path is recorded in the
-[linear-algebra counters](/site/reference/#linear-algebra-counters).
+[linear-algebra counters](/reference/#linear-algebra-counters).

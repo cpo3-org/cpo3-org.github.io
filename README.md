@@ -23,6 +23,7 @@ Use Node.js 24 or later and npm. To review **all versions**, including search:
 ```sh
 npm ci
 npm run build
+npm run check:links
 npm run preview
 ```
 
@@ -62,11 +63,13 @@ To document a new release:
    release version/tag, and pin the generated Rust API link to that release.
 4. Add the version to `releases` and update `latestRelease` in `docs.config.mjs`.
    Keep earlier snapshots in place so their URLs continue to work.
-5. Run `npm test` and `npm run build`, then review switching and search with
-   `npm run preview`.
+5. Run `npm test`, `npm run build`, and `npm run check:links`, then review
+   switching and search with `npm run preview`.
 
 ## Publishing
 
-GitHub Actions runs `npm run build` for pull requests and deploys the combined
-`dist/` output on pushes to `main`. Deployment can also be started manually
-from the Actions tab. Generated files are not committed.
+GitHub Actions runs tests, builds all documentation versions, and checks internal
+links, anchors, assets, and version-selector destinations before deployment.
+External links are not fetched. The `build` check must pass before a PR can merge
+to `main`; pushes to `main` deploy the combined `dist/` output. Deployment can
+also be started manually from the Actions tab. Generated files are not committed.
